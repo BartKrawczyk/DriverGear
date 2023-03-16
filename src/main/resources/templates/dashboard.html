@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Panel główny</title>
+</head>
+<body>
+<h1>Panel główny</h1>
+<p>Witaj w panelu głównym!</p>
+<form th:action="@{/logout}" method="post">
+  <input type="submit" value="Wyloguj">
+</form>
+</body>
+</html>
