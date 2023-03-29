@@ -1,15 +1,17 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout.html">
 <head>
-  <meta charset="UTF-8">
-  <title>Home</title>
+  <title>Strona główna</title>
 </head>
 <body>
-<h1>Witaj na stronie startowej!</h1>
-<p>
-  <a th:href="@{/login}">
-    <button type="button">Zaloguj się</button>
-  </a>
-</p>
+<div layout:fragment="content">
+  <h1>Witamy na stronie DriverGear!</h1>
+  <p>
+    <a th:href="@{/login}">
+      <button type="button">Zaloguj się</button>
+    </a>
+  </p>
+</div>
 </body>
 </html>
+
