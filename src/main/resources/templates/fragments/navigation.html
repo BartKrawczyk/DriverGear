@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="en">
+<body>
+<div th:fragment="topNavigation(currentlocation)" class="navcontainer">
+  <div class="navitem navtitle">Spaceship Application!!!!</div>
+  <div class="navitem navlocation" th:insert="${currentlocation}">Location... this html is not going be seen</div>
+  <div class="navitem"><</div>
+  <div class="navitem"></div>
+</div>
+</body>
+</html>

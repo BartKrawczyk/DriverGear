@@ -1,29 +1,26 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      xmlns:https="http://www.w3.org/1999/xhtml">
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <head>
-  <title th:replace="~{::title}">DriverGear</title>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-  <!-- Link do lokalnego pliku CSS Bootstrap -->
-  <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+  <title layout:title-pattern="$LAYOUT_TITLE - $CONTENT_TITLE">DriverGear Application</title>
+  <!-- Link do zewnętrznego pliku CSS Bootstrap -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 </head>
 <body>
 <header>
-  <h2>Tutaj będzie menu</h2>
+  <h1>My website</h1>
 </header>
+<div th:replace="fragments/navigation.html :: topNavigation(currentlocation)">
 
-<div layout:fragment="content">
-  <!-- W tej sekcji zostaną wstawione treści poszczególnych stron -->
 </div>
-
+<section layout:fragment="content">
+  <p>Page content goes here</p>
+</section>
 <footer>
-  <h2>Tutaj będzie footer</h2>
+  <p>My footer</p>
+  <p layout:fragment="custom-footer">Custom footer here</p>
 </footer>
-
-<!-- Link do lokalnych skryptów JavaScript Bootstrap -->
-<script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 </body>
 </html>
-
