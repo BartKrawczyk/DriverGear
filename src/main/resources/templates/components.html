@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<header>
+
+</header>
+<head th:fragment="site-head">
+    <meta charset="UTF-8"/>
+    <title>DriverGear 1.0</title>
+    <link th:href="@{/css/style.css}" rel="stylesheet" />
+</head>
+<body>
+<nav th:fragment="navigation" class="my-navigation">
+    <ul>
+        <li><a th:href="@{/home}">Home</a></li>
+        <li><a th:href="@{/warehouse}">Warehouse</a></li>
+        <li><a th:href="@{/administration}">Administration</a></li>
+        <li><a th:href="@{/logout}">Logout</a></li>
+    </ul>
+</nav>
+<footer th:fragment="footer">
+    <!-- Stopka -->
+</footer>
+</body>
+</html>

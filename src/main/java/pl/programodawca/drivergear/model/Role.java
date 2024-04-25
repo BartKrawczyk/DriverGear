@@ -1,7 +1,6 @@
 package pl.programodawca.drivergear.model;
 
 import org.springframework.security.core.GrantedAuthority;
-
 import javax.persistence.*;
 import java.util.Set;
 

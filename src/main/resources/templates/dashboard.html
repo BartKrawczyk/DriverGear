@@ -2,12 +2,9 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorator="layout.html" lang="pl">
-<head>
-  <meta charset="UTF-8">
-  <title>Panel główny</title>
-</head>
+<head th:replace="components :: site-head"></head>
 <body>
-<div layout:fragment="content">
+<div th:insert="components :: navigation"></div>
 <h1>Dashboard</h1>
 <p>Witaj w panelu głównym!</p>
 <form th:action="@{/logout}" method="post">

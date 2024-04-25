@@ -14,9 +14,25 @@
 <!--</div>-->
 <!--</body>-->
 <!--</html>-->
+<!--<!DOCTYPE html>-->
+<!--<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"-->
+<!--      layout:decorate="~{layout}">-->
+<!--<body>-->
+<!--<section layout:fragment="content">-->
+<!--  <h1>Witamy na stronie DriverGear!</h1>-->
+<!--  <p>-->
+<!--    <a th:href="@{/login}">-->
+<!--      <button type="button" class="btn btn-primary">Zaloguj się</button>-->
+<!--    </a>-->
+<!--  </p>-->
+<!--</section>-->
+<!--</body>-->
+<!--</html>-->
+
 <!DOCTYPE html>
-<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layout}">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head th:replace="components :: site-head"></head>
 <body>
 <section layout:fragment="content">
   <h1>Witamy na stronie DriverGear!</h1>
@@ -26,9 +42,6 @@
     </a>
   </p>
 </section>
-<footer>
-  <p layout:fragment="custom-footer">This is some footer content from content page 1</p>
-</footer>
 </body>
 </html>
 
