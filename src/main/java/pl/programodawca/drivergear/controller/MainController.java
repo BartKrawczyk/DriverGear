@@ -14,12 +14,12 @@ public class MainController {
         this.userService = userService;
     }
 
-    @GetMapping("/")
-    public String home() {
-        return "home";
-    }
+//    @GetMapping("/")
+//    public String home() {
+//        return "home";
+//    }
 
-    @GetMapping("/login")
+    @GetMapping({"/", "/login"})
     public String login() {
         return "login";
     }
@@ -30,4 +30,11 @@ public class MainController {
         return "dashboard";
     }
 
+    @GetMapping("/logout")
+    public String logout() {
+        return "login";
+    }
+
 }
+
+
