@@ -5,7 +5,7 @@ import java.util.Set;
 
 @Entity
 @Table(name = "users")
-public class User {
+public class User_Old {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -16,14 +16,11 @@ public class User {
     private String password;
 
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "user_roles",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
-    private Set<Role> roles;
+    @JoinTable(name = "user_roles",
+    joinColumns = @JoinColumn(name="user_id"),
+    inverseJoinColumns = @JoinColumn(name = "role_id"))
+    private Set<Role_Old> roles;
 
-    // Getters and setters
     public Long getId() {
         return id;
     }
@@ -48,11 +45,11 @@ public class User {
         this.password = password;
     }
 
-    public Set<Role> getRoles() {
+    public Set<Role_Old> getRoles() {
         return roles;
     }
 
-    public void setRoles(Set<Role> roles) {
+    public void setRoles(Set<Role_Old> roles) {
         this.roles = roles;
     }
 }

@@ -4,13 +4,16 @@
   box-sizing: border-box;
 }
 
-body {
+html, body {
+  height: 100%;
   background-color: #f9f9f9;
   color: #444444;
   font-family: "Montserrat", sans-serif;
   font-size: 1rem;
   margin: 0;
   padding: 0;
+  display: flex; /* Użyj flexboxa do rozmieszczenia elementów */
+  flex-direction: column; /* Elementy układane w kolumnach */
 }
 
 .kanit-light {

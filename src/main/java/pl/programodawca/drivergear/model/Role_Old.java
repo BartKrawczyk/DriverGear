@@ -1,30 +1,30 @@
 package pl.programodawca.drivergear.model;
 
+import org.springframework.security.core.GrantedAuthority;
 import javax.persistence.*;
-import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-public class Role {
-
+@Table(name = "roles")
+public class Role_Old implements GrantedAuthority {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String name; // Nazwa roli (np. ADMIN, USER)
+    private String name;
 
     @ManyToMany(mappedBy = "roles")
-    private Set<User> users = new HashSet<>(); // Powiązanie wielu użytkowników z rolą
+    private Set<User_Old> users;
 
-    public Role() {
+    // Konstruktory
+    public Role_Old() {
     }
 
-    public Role(String name) {
+    public Role_Old(String name) {
         this.name = name;
     }
 
-    // Gettery i settery
+    //gettery i settery
     public Long getId() {
         return id;
     }
@@ -41,11 +41,18 @@ public class Role {
         this.name = name;
     }
 
-    public Set<User> getUsers() {
+    public Set<User_Old> getUsers() {
         return users;
     }
 
-    public void setUsers(Set<User> users) {
+    public void setUsers(Set<User_Old> users) {
         this.users = users;
     }
+
+    // Implementacja metody getAuthority() z interfejsu GrantedAuthority
+    @Override
+    public String getAuthority() {
+        return name;
+    }
 }
+

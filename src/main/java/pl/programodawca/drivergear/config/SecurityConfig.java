@@ -9,16 +9,16 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import pl.programodawca.drivergear.service.UserDetailServiceImpl;
+import pl.programodawca.drivergear.service.impl.UserDetailServiceImpl_Old;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final UserDetailServiceImpl userDetailsService;
+    private final UserDetailServiceImpl_Old userDetailsService;
 
     @Autowired
-    public SecurityConfig(UserDetailServiceImpl userDetailsService) {
+    public SecurityConfig(UserDetailServiceImpl_Old userDetailsService) {
         this.userDetailsService = userDetailsService;
     }
 

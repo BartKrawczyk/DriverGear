@@ -3,14 +3,14 @@ package pl.programodawca.drivergear.controller;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import pl.programodawca.drivergear.service.UserService;
+import pl.programodawca.drivergear.service.UserService_Old;
 
 @Controller
 public class MainController {
 
-    private final UserService userService;
+    private final UserService_Old userService;
 
-    public MainController(UserService userService) {
+    public MainController(UserService_Old userService) {
         this.userService = userService;
     }
 
