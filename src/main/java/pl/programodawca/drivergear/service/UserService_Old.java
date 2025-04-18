@@ -2,22 +2,22 @@ package pl.programodawca.drivergear.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import pl.programodawca.drivergear.model.User_Old;
-import pl.programodawca.drivergear.repository.UserRepository;
+import pl.programodawca.drivergear.model.AppUser;
+import pl.programodawca.drivergear.repository.AppUserRepository;
 
 import java.util.List;
 
 @Service
 public class UserService_Old {
 
-    private final UserRepository userRepository;
+    private final AppUserRepository appUserRepository;
 
     @Autowired
-    public UserService_Old(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public UserService_Old(AppUserRepository appUserRepository) {
+        this.appUserRepository = appUserRepository;
     }
 
-    public List<User_Old> findAllUsers() {
-        return userRepository.findAll();
+    public List<AppUser> findAllUsers() {
+        return appUserRepository.findAll();
     }
 }

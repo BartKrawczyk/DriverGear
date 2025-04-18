@@ -23,6 +23,9 @@ public class ClothingEntitlement {
 
     private LocalDate eligibleTo;
 
+    @Column(name = "used_quantity", columnDefinition = "integer default 0")
+    private int usedQuantity = 0;
+
     // Getters and setters
     public Long getId() {
         return id;
@@ -62,5 +65,13 @@ public class ClothingEntitlement {
 
     public void setEligibleTo(LocalDate eligibleTo) {
         this.eligibleTo = eligibleTo;
+    }
+
+    public int getUsedQuantity() {
+        return usedQuantity;
+    }
+
+    public void setUsedQuantity(int usedQuantity) {
+        this.usedQuantity = usedQuantity;
     }
 }

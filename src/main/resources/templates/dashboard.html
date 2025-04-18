@@ -1,31 +1,114 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorator="layout.html" lang="pl">
-<head th:replace="components :: site-head"></head>
-<body>
-<div th:insert="components :: navigation"></div>
-<h1>Dashboard</h1>
-<p>Witaj w panelu głównym!</p>
-<form th:action="@{/logout}" method="post">
-  <input type="submit" value="Wyloguj">
-</form>
-  <table class="table">
-    <thead class="table-header">
-    <tr class="table-row">
-      <th>ID</th>
-      <th>Username</th>
-      <th>Password</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="user : ${users}">
-      <td th:text="${user.id}"></td>
-      <td th:text="${user.username}"></td>
-      <td th:text="${user.password}"></td>
-    </tr>
-    </tbody>
-  </table>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="components :: site-head">
+  <title>Dashboard</title>
+</head>
+<body class="d-flex flex-column min-vh-100 metallic-background">
+<nav th:replace="components :: navigation"></nav>
+
+<div class="container">
+  <div class="row justify-content-center align-items-center" style="min-height: 70vh;">
+    <div class="col-md-4 text-center mb-4">
+      <a href="/warehouse" class="text-decoration-none">
+        <div class="card h-100 shadow-sm hover-card metallic-card">
+          <div class="card-body">
+            <i class="bi bi-building fs-1 mb-3"></i>
+            <h3 class="card-title">Warehouse</h3>
+            <p class="card-text">Zarządzaj magazynem i produktami</p>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-md-4 text-center mb-4">
+      <a th:href="@{/administration}" class="text-decoration-none">
+        <div class="card h-100 shadow-sm hover-card metallic-card">
+          <div class="card-body">
+            <i class="bi bi-gear fs-1 mb-3"></i>
+            <h3 class="card-title">Administration</h3>
+            <p class="card-text">Zarządzaj użytkownikami i ustawieniami</p>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
 </div>
+
+<div th:replace="components :: footer"></div>
+<div th:replace="components :: scripts"></div>
+
+<style>
+  .metallic-background {
+    background: linear-gradient(135deg, #414345 0%, #232526 100%);
+    background-attachment: fixed;
+  }
+
+  .metallic-card {
+    background: linear-gradient(145deg, #e6e6e6, #d4d4d4);
+    border: none;
+    position: relative;
+    color: #333;
+  }
+
+  .metallic-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg,
+    rgba(255,255,255,0.1) 0%,
+    rgba(255,255,255,0.13) 50%,
+    rgba(255,255,255,0.1) 100%);
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .metallic-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+            45deg,
+            rgba(255,255,255,0.05) 0px,
+            rgba(255,255,255,0.05) 1px,
+            transparent 1px,
+            transparent 2px
+    );
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .hover-card {
+    transition: all 0.3s ease;
+  }
+
+  .hover-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.3) !important;
+    background: linear-gradient(145deg, #f0f0f0, #e0e0e0);
+  }
+
+  .card-body {
+    position: relative;
+    z-index: 3;
+  }
+
+  .bi {
+    color: #2b5876;
+  }
+
+  .card-text {
+    color: #666;
+  }
+</style>
 </body>
 </html>
+
+
+
+

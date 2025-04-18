@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Lista użytkowników</title>
+</head>
+<body>
+<div class="alert alert-primary" role="alert">
+    Bootstrap działa!
+</div>
+
+<nav th:fragment="navigation" class="my-navigation">
+    <ul>
+        <li><a th:href="@{/home}">Home</a></li>
+        <li><a th:href="@{/warehouse}">Warehouse</a></li>
+        <li><a th:href="@{/app-users}">Administration</a></li>
+        <li><a th:href="@{/logout}">Logout</a></li>
+    </ul>
+</nav>
+<h1>Lista użytkowników</h1>
+<a th:href="@{/app-users/new}">Dodaj nowego użytkownika</a> <!-- Link do formularza -->
+<table border="1">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Imię</th>
+        <th>Nazwisko</th>
+        <th>Nazwa użytkownika</th>
+        <th>Akcje</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- Pętla wyświetlająca wszystkich użytkowników -->
+    <tr th:each="appUser : ${appUsers}">
+        <td th:text="${appUser.id}">1</td>
+        <td th:text="${appUser.firstName}">Imię użytkownika</td>
+        <td th:text="${appUser.lastName}">Nazwisko użytkownika</td>
+        <td th:text="${appUser.username}">Nazwa użytkownika</td>
+        <td>
+            <a th:href="@{/app-users/{id}/edit(id=${appUser.id})}">Edytuj</a> <!-- Link do edytowania -->
+            |
+            <a th:href="@{/app-users/{id}/delete(id=${appUser.id})}" onclick="return confirm('Czy na pewno usunąć?')">Usuń</a> <!-- Link do usuwania -->
+        </td>
+    </tr>
+    </tbody>
+</table>
+<footer th:fragment="footer">
+    <p>Bartek Krawczyk 2025</p>
+</footer>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="components_old.html :: site-head">
+    <title>Formularz użytkownika</title> <!-- Tytuł strony, nadpisuje domyślny tytuł z "site-head" -->
+</head>
+
+<body>
+<nav th:replace="components_old.html :: navigation"></nav>
+
+<h1 th:text="${appUser.id == null ? 'Dodaj nowego użytkownika' : 'Edytuj użytkownika'}"></h1>
+
+<!-- Formularz -->
+<form th:action="@{/app-users}" th:method="post" th:object="${appUser}" class="container mt-5">
+    <!-- Pole ukryte, wymagane przy edycji (dla ID użytkownika) -->
+    <input type="hidden" th:field="*{id}" />
+
+    <!-- Pole na imię -->
+    <div>
+        <label for="firstName">Imię:</label>
+        <input type="text" id="firstName" th:field="*{firstName}" placeholder="Wprowadź imię" required />
+    </div>
+
+    <!-- Pole na nazwisko -->
+    <div>
+        <label for="lastName">Nazwisko:</label>
+        <input type="text" id="lastName" th:field="*{lastName}" placeholder="Wprowadź nazwisko" required />
+    </div>
+
+    <!-- Pole na nazwę użytkownika -->
+    <div>
+        <label for="username">Nazwa użytkownika:</label>
+        <input type="text" id="username" th:field="*{username}" placeholder="Wprowadź nazwę użytkownika" required />
+    </div>
+
+    <!-- Pole na hasło -->
+    <div>
+        <label for="password">Hasło:</label>
+        <input type="password" id="password" th:field="*{password}" placeholder="Wprowadź hasło" required />
+    </div>
+
+    <!-- Przycisk zatwierdzający -->
+    <div>
+        <button type="submit">Zapisz</button>
+        <a th:href="@{/app-users}">Anuluj</a> <!-- Powrót do listy użytkowników -->
+    </div>
+</form>
+<footer th:replace="components_old.html :: footer"></footer>
+</body>
+</html>
+
+
