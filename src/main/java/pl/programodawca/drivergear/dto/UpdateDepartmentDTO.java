@@ -11,7 +11,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateDepartmentDTO {
+public class UpdateDepartmentDTO {
+    private Long id;
+
     @NotBlank(message = "Nazwa jest wymagana")
     @Size(min = 2, max = 50, message = "Nazwa musi mieć od 2 do 50 znaków")
     private String name;
@@ -22,15 +24,23 @@ public class CreateDepartmentDTO {
 
     private String description;
 
-    // Metoda konwersji na DepartmentDTO
     public DepartmentDTO toDepartmentDTO() {
         return DepartmentDTO.builder()
+                .id(this.id)
                 .name(this.name)
                 .code(this.code)
                 .description(this.description)
                 .build();
     }
-}
 
+    public static UpdateDepartmentDTO fromDepartmentDTO(DepartmentDTO departmentDTO) {
+        return UpdateDepartmentDTO.builder()
+                .id(departmentDTO.getId())
+                .name(departmentDTO.getName())
+                .code(departmentDTO.getCode())
+                .description(departmentDTO.getDescription())
+                .build();
+    }
+}
 
 

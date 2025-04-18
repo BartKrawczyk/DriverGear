@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.programodawca.drivergear.dto.CreateDepartmentDTO;
 import pl.programodawca.drivergear.dto.DepartmentDTO;
+import pl.programodawca.drivergear.dto.UpdateDepartmentDTO;
 import pl.programodawca.drivergear.exception.DepartmentAlreadyExistsException;
 import pl.programodawca.drivergear.exception.DepartmentNotFoundException;
 import pl.programodawca.drivergear.model.Department;
@@ -25,22 +26,22 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
-    public DepartmentDTO createDepartment(CreateDepartmentDTO dto) {
-        log.info("Próba utworzenia nowego działu: {}", dto.getName());
+    public DepartmentDTO createDepartment(CreateDepartmentDTO createDepartmentDTO) {
+        log.info("Próba utworzenia nowego działu: {}", createDepartmentDTO.getName());
 
-        if (departmentRepository.existsByName(dto.getName())) {
-            log.warn("Próba utworzenia działu o istniejącej nazwie: {}", dto.getName());
-            throw new DepartmentAlreadyExistsException("Dział o nazwie " + dto.getName() + " już istnieje");
+        if (departmentRepository.existsByName(createDepartmentDTO.getName())) {
+            log.warn("Próba utworzenia działu o istniejącej nazwie: {}", createDepartmentDTO.getName());
+            throw new DepartmentAlreadyExistsException("Dział o nazwie " + createDepartmentDTO.getName() + " już istnieje");
         }
-        if (departmentRepository.existsByCode(dto.getCode())) {
-            log.warn("Próba utworzenia działu o istniejącym kodzie: {}", dto.getCode());
-            throw new DepartmentAlreadyExistsException("Dział o kodzie " + dto.getCode() + " już istnieje");
+        if (departmentRepository.existsByCode(createDepartmentDTO.getCode())) {
+            log.warn("Próba utworzenia działu o istniejącym kodzie: {}", createDepartmentDTO.getCode());
+            throw new DepartmentAlreadyExistsException("Dział o kodzie " + createDepartmentDTO.getCode() + " już istnieje");
         }
 
         Department department = new Department();
-        department.setName(dto.getName());
-        department.setCode(dto.getCode().toUpperCase());
-        department.setDescription(dto.getDescription());
+        department.setName(createDepartmentDTO.getName());
+        department.setCode(createDepartmentDTO.getCode().toUpperCase());
+        department.setDescription(createDepartmentDTO.getDescription());
 
         Department savedDepartment = departmentRepository.save(department);
         log.info("Utworzono nowy dział: {} (ID: {})", savedDepartment.getName(), savedDepartment.getId());
@@ -48,24 +49,24 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
-    public DepartmentDTO updateDepartment(Long id, CreateDepartmentDTO dto) {
+    public DepartmentDTO updateDepartment(Long id, UpdateDepartmentDTO updateDepartmentDTO) {
         log.info("Próba aktualizacji działu o ID: {}", id);
 
         Department department = departmentRepository.findById(id)
                 .orElseThrow(() -> new DepartmentNotFoundException("Nie znaleziono działu o id: " + id));
 
-        if (!department.getName().equals(dto.getName()) && departmentRepository.existsByName(dto.getName())) {
-            log.warn("Próba aktualizacji działu na istniejącą nazwę: {}", dto.getName());
-            throw new DepartmentAlreadyExistsException("Dział o nazwie " + dto.getName() + " już istnieje");
+        if (!department.getName().equals(updateDepartmentDTO.getName()) && departmentRepository.existsByName(updateDepartmentDTO.getName())) {
+            log.warn("Próba aktualizacji działu na istniejącą nazwę: {}", updateDepartmentDTO.getName());
+            throw new DepartmentAlreadyExistsException("Dział o nazwie " + updateDepartmentDTO.getName() + " już istnieje");
         }
-        if (!department.getCode().equals(dto.getCode()) && departmentRepository.existsByCode(dto.getCode())) {
-            log.warn("Próba aktualizacji działu na istniejący kod: {}", dto.getCode());
-            throw new DepartmentAlreadyExistsException("Dział o kodzie " + dto.getCode() + " już istnieje");
+        if (!department.getCode().equals(updateDepartmentDTO.getCode()) && departmentRepository.existsByCode(updateDepartmentDTO.getCode())) {
+            log.warn("Próba aktualizacji działu na istniejący kod: {}", updateDepartmentDTO.getCode());
+            throw new DepartmentAlreadyExistsException("Dział o kodzie " + updateDepartmentDTO.getCode() + " już istnieje");
         }
 
-        department.setName(dto.getName());
-        department.setCode(dto.getCode().toUpperCase());
-        department.setDescription(dto.getDescription());
+        department.setName(updateDepartmentDTO.getName());
+        department.setCode(updateDepartmentDTO.getCode().toUpperCase());
+        department.setDescription(updateDepartmentDTO.getDescription());
 
         Department updatedDepartment = departmentRepository.save(department);
         log.info("Zaktualizowano dział: {} (ID: {})", updatedDepartment.getName(), updatedDepartment.getId());
@@ -86,6 +87,11 @@ public class DepartmentServiceImpl implements DepartmentService {
         return departmentRepository.findAll().stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public DepartmentDTO findById(Long id) {
+        return getDepartmentById(id);
     }
 
     @Override
