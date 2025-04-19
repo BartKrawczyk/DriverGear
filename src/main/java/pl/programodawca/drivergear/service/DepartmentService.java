@@ -17,4 +17,6 @@ public interface DepartmentService {
     DepartmentDTO createDepartment(CreateDepartmentDTO createDepartmentDTO);  // zmiana parametru
     DepartmentDTO updateDepartment(Long id, UpdateDepartmentDTO updateDepartmentDTO);  // zmiana parametru
     void deleteDepartment(Long id);
+
+    List<Department> findAll();
 }

@@ -104,6 +104,11 @@ public class DepartmentServiceImpl implements DepartmentService {
         log.info("Usunięto dział o ID: {}", id);
     }
 
+    @Override
+    public List<Department> findAll() {
+        return List.of();
+    }
+
     private DepartmentDTO mapToDTO(Department department) {
         return DepartmentDTO.builder()
                 .id(department.getId())
