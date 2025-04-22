@@ -1,36 +1,31 @@
 package pl.programodawca.drivergear.dto;
 
+import lombok.*;
+import pl.programodawca.drivergear.model.Position;
+
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import javax.validation.constraints.Size;
 
-@Data
-@Builder
+@Getter
+@Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class UpdatePositionDTO {
-    @NotBlank(message = "Nazwa stanowiska jest wymagana")
-    private String name;
+    private Long id;
 
-    @NotBlank(message = "Kod stanowiska jest wymagany")
-    private String code;
-
-    private String description;
-
-    @NotNull(message = "Dział jest wymagany")
+    @NotNull(message = "Wybór działu jest wymagany")
     private Long departmentId;
 
-    // Metoda pomocnicza do konwersji z PositionDTO
-    public static UpdatePositionDTO fromPositionDTO(PositionDTO positionDTO) {
-        return UpdatePositionDTO.builder()
-                .name(positionDTO.getName())
-                .code(positionDTO.getCode())
-                .description(positionDTO.getDescription())
-                .departmentId(positionDTO.getDepartmentId())
-                .build();
-    }
+    @NotBlank(message = "Nazwa stanowiska jest wymagana")
+    @Size(min = 3, max = 100, message = "Nazwa stanowiska musi mieć od {min} do {max} znaków")
+    private String name;
+
+    @Size(max = 500, message = "Opis nie może przekraczać {max} znaków")
+    private String description;
+
+    private boolean active;
 }
+
+
+
 

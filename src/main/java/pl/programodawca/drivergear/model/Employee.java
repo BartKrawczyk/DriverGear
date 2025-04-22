@@ -1,89 +1,48 @@
 package pl.programodawca.drivergear.model;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
 import javax.persistence.*;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import javax.validation.constraints.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.validator.constraints.Length;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Set;
 
 @Entity
 @Table(name = "employees")
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@EntityListeners(AuditingEntityListener.class)
 public class Employee {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "first_name", nullable = false)
+    @NotBlank
+    @Column(nullable = false)
     private String firstName;
 
-    @Column(name = "last_name", nullable = false)
+    @NotBlank
+    @Column(nullable = false)
     private String lastName;
 
-    @Column(name = "identification_number", unique = true, nullable = false)
-    private String identificationNumber;
-
-    @Column(nullable = false)
-    private String position;
-
-    @Column(name = "monetary_equivalent", nullable = false)
-    private Double monetaryEquivalent = 0.0;
-
-    @Column(name = "is_active", nullable = false)
-    private boolean isActive = true;
+    @Column(nullable = false, unique = true)
+    private String employeeNumber;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id", nullable = false)
     private Department department;
 
-    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ClothingUsage> history = new ArrayList<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "position_id", nullable = false)
+    private Position position;
 
-    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ClothingEntitlement> entitlements = new ArrayList<>();
+    @Column(nullable = false)
+    private boolean active = true;
 
-    @OneToOne
-    @JoinColumn(name = "user_id")
-    private AppUser user;
-
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @LastModifiedDate
-    @Column(name = "last_modified_at")
-    private LocalDateTime lastModifiedAt;
-
-    // Metody pomocnicze do zarządzania relacjami
-    public void addClothingUsage(ClothingUsage usage) {
-        history.add(usage);
-        usage.setEmployee(this);
-    }
-
-    public void removeClothingUsage(ClothingUsage usage) {
-        history.remove(usage);
-        usage.setEmployee(null);
-    }
-
-    public void addClothingEntitlement(ClothingEntitlement entitlement) {
-        entitlements.add(entitlement);
-        entitlement.setEmployee(this);
-    }
-
-    public void removeClothingEntitlement(ClothingEntitlement entitlement) {
-        entitlements.remove(entitlement);
-        entitlement.setEmployee(null);
-    }
+    // Dodatkowe pola jak data zatrudnienia, PESEL, itp. możemy dodać później
 }
+

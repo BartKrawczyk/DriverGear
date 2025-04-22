@@ -1,8 +1,11 @@
 package pl.programodawca.drivergear.controller;
 
-import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -11,149 +14,144 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import pl.programodawca.drivergear.dto.CreatePositionDTO;
 import pl.programodawca.drivergear.dto.PositionDTO;
 import pl.programodawca.drivergear.dto.UpdatePositionDTO;
-import pl.programodawca.drivergear.exception.PositionAlreadyExistsException;
-import pl.programodawca.drivergear.model.Position;
+import pl.programodawca.drivergear.exception.ResourceAlreadyExistsException;
+import pl.programodawca.drivergear.exception.ResourceInUseException;
+import pl.programodawca.drivergear.exception.ResourceNotFoundException;
 import pl.programodawca.drivergear.service.DepartmentService;
 import pl.programodawca.drivergear.service.PositionService;
-import pl.programodawca.drivergear.model.Department;
-import pl.programodawca.drivergear.service.DepartmentService;
 
-
+import javax.validation.Valid;
 import java.util.List;
 
-@Slf4j
 @Controller
 @RequestMapping("/administration/positions")
 @RequiredArgsConstructor
 public class PositionController {
-
     private final PositionService positionService;
     private final DepartmentService departmentService;
 
     @GetMapping
-    public String listPositions(Model model) {
-        List<PositionDTO> positions = positionService.getAllPositions();
-        model.addAttribute("positions", positionService.getAllPositions());
+    public String listPositions(@RequestParam(required = false) Boolean showInactive,
+                                @RequestParam(required = false) Long departmentId,
+                                Model model) {
+        List<PositionDTO> positions;
+
+        if (departmentId != null) {
+            positions = showInactive != null && showInactive
+                    ? positionService.findPositionsByDepartment(departmentId)
+                    : positionService.findActivePositionsByDepartment(departmentId);
+        } else {
+            positions = showInactive != null && showInactive
+                    ? positionService.findAllPositions()
+                    : positionService.findActivePositions();
+        }
+
+        model.addAttribute("positions", positions);
+        model.addAttribute("departments", departmentService.getAllActiveDepartments()); // POPRAWIONE
+        model.addAttribute("selectedDepartmentId", departmentId);
         return "administration/positions/position-list";
     }
 
     @GetMapping("/new")
-    public String showCreateForm(Model model) {
-        if (!model.containsAttribute("position")) {
-            model.addAttribute("position", new CreatePositionDTO());
+    public String createForm(@RequestParam(required = false) Long departmentId, Model model) {
+        CreatePositionDTO createPositionDTO = new CreatePositionDTO();
+        if (departmentId != null) {
+            createPositionDTO.setDepartmentId(departmentId);
         }
-        model.addAttribute("departments", departmentService.getAllDepartments());
+
+        model.addAttribute("positionDTO", createPositionDTO);
+        model.addAttribute("departments", departmentService.getAllActiveDepartments()); // POPRAWIONE
         model.addAttribute("isNew", true);
-        return "administration/positions/position-create";
+        model.addAttribute("title", "Dodaj nowe stanowisko");
+        return "administration/positions/position-form";
     }
 
-    @PostMapping("/new")
-    public String createPosition(
-            @Valid @ModelAttribute("position") CreatePositionDTO positionDTO,
-            BindingResult bindingResult,
-            RedirectAttributes redirectAttributes,
-            Model model
-    ) {
+    @PostMapping
+    public String createPosition(@Valid @ModelAttribute("positionDTO") CreatePositionDTO createPositionDTO,
+                                 BindingResult bindingResult,
+                                 RedirectAttributes redirectAttributes,
+                                 Model model) {
         if (bindingResult.hasErrors()) {
-            model.addAttribute("departments", departmentService.getAllDepartments());
+            model.addAttribute("departments", departmentService.getAllActiveDepartments()); // POPRAWIONE
             model.addAttribute("isNew", true);
-            return "administration/positions/position-create";
+            model.addAttribute("title", "Dodaj nowe stanowisko");
+            return "administration/positions/position-form";
         }
 
         try {
-            positionService.createPosition(positionDTO);
-            redirectAttributes.addFlashAttribute("successMessage", "Stanowisko zostało utworzone pomyślnie");
+            PositionDTO createdPosition = positionService.createPosition(createPositionDTO);
+            redirectAttributes.addFlashAttribute("message", "Stanowisko zostało utworzone");
+            redirectAttributes.addFlashAttribute("messageType", "success");
             return "redirect:/administration/positions";
-        } catch (PositionAlreadyExistsException e) {
+        } catch (ResourceAlreadyExistsException e) {
             bindingResult.rejectValue("name", "error.position", e.getMessage());
-            model.addAttribute("departments", departmentService.getAllDepartments());
+            model.addAttribute("departments", departmentService.getAllActiveDepartments());
             model.addAttribute("isNew", true);
-            return "administration/positions/position-create";
+            model.addAttribute("title", "Dodaj nowe stanowisko");
+            return "administration/positions/position-form";
         }
     }
 
     @GetMapping("/{id}/edit")
-    public String showEditForm(@PathVariable Long id, Model model,
+    public String showEditForm(@PathVariable Long id,
+                               Model model,
                                RedirectAttributes redirectAttributes) {
         try {
-            PositionDTO positionDTO = positionService.findById(id);
-            List<Department> departments = departmentService.findAll(); // dodaj to!
+            PositionDTO positionDTO = positionService.findPositionById(id);
+            UpdatePositionDTO updatePositionDTO = new UpdatePositionDTO();
+            // ... mapowanie pól
 
-            model.addAttribute("position", UpdatePositionDTO.fromPositionDTO(positionDTO)); // zmieniona nazwa atrybutu
-            model.addAttribute("departments", departments); // dodaj listę działów
-            model.addAttribute("id", id); // dodaj id do modelu
-            return "administration/positions/position-edit";
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Nie znaleziono stanowiska o ID: " + id);
+            model.addAttribute("positionDTO", updatePositionDTO);
+            model.addAttribute("departments", departmentService.getAllActiveDepartments()); // POPRAWIONE
+            model.addAttribute("isNew", false);
+            model.addAttribute("title", "Edycja stanowiska");
+            return "administration/positions/position-form";
+        } catch (ResourceNotFoundException e) {
+
+            redirectAttributes.addFlashAttribute("message", e.getMessage());
+            redirectAttributes.addFlashAttribute("messageType", "danger");
             return "redirect:/administration/positions";
         }
     }
 
-
-
-//    @GetMapping("/{id}/edit")
-//    public String showEditForm(@PathVariable Long id, Model model) {
-//        if (!model.containsAttribute("position")) {
-//            PositionDTO positionDTO = positionService.getPositionById(id);
-//            CreatePositionDTO editDTO = new CreatePositionDTO();
-//            editDTO.setName(positionDTO.getName());
-//            editDTO.setCode(positionDTO.getCode());
-//            editDTO.setDescription(positionDTO.getDescription());
-//            editDTO.setDepartmentId(positionDTO.getDepartmentId());
-//            model.addAttribute("position", editDTO);
-//        }
-//        model.addAttribute("positionId", id);
-//        model.addAttribute("departments", departmentService.getAllDepartments());
-//        model.addAttribute("isNew", false);
-//        return "administration/positions/position-edit";
-//    }
-
-    @PostMapping("/{id}/edit")
-    public String updatePosition(
-            @PathVariable Long id,
-            @Valid @ModelAttribute("position") UpdatePositionDTO updatePositionDTO,
-            BindingResult bindingResult,
-            RedirectAttributes redirectAttributes,
-            Model model
-    ) {
+    @PostMapping("/{id}")
+    public String updatePosition(@PathVariable Long id,
+                                 @Valid @ModelAttribute("positionDTO") UpdatePositionDTO updatePositionDTO,
+                                 BindingResult bindingResult,
+                                 RedirectAttributes redirectAttributes,
+                                 Model model) {
         if (bindingResult.hasErrors()) {
-            model.addAttribute("positionId", id);
-            model.addAttribute("departments", departmentService.getAllDepartments());
+            model.addAttribute("departments", departmentService.getAllActiveDepartments()); // POPRAWIONE
             model.addAttribute("isNew", false);
-            return "administration/positions/position-edit";
+            model.addAttribute("title", "Edycja stanowiska");
+            return "administration/positions/position-form";
         }
 
         try {
             positionService.updatePosition(id, updatePositionDTO);
-            redirectAttributes.addFlashAttribute("successMessage", "Stanowisko zostało zaktualizowane pomyślnie");
+            redirectAttributes.addFlashAttribute("message", "Stanowisko zostało zaktualizowane");
+            redirectAttributes.addFlashAttribute("messageType", "success");
             return "redirect:/administration/positions";
-        } catch (PositionAlreadyExistsException e) {
+        } catch (ResourceNotFoundException | ResourceAlreadyExistsException e) {
             bindingResult.rejectValue("name", "error.position", e.getMessage());
-            model.addAttribute("positionId", id);
-            model.addAttribute("departments", departmentService.getAllDepartments());
+            model.addAttribute("departments", departmentService.getAllActiveDepartments());
             model.addAttribute("isNew", false);
-            return "administration/positions/position-edit";
+            model.addAttribute("title", "Edycja stanowiska");
+            return "administration/positions/position-form";
         }
     }
 
-    @GetMapping("/{id}/delete")
-    public String deletePosition(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    @PostMapping("/{id}/delete")
+    public String deletePosition(@PathVariable Long id,
+                                 RedirectAttributes redirectAttributes) {
         try {
             positionService.deletePosition(id);
-            redirectAttributes.addFlashAttribute("successMessage", "Stanowisko zostało usunięte pomyślnie");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage",
-                    "Nie można usunąć stanowiska. Sprawdź czy nie jest przypisane do żadnego pracownika.");
+            redirectAttributes.addFlashAttribute("message", "Stanowisko zostało usunięte");
+            redirectAttributes.addFlashAttribute("messageType", "success");
+        } catch (ResourceNotFoundException | ResourceInUseException e) {
+            redirectAttributes.addFlashAttribute("message", e.getMessage());
+            redirectAttributes.addFlashAttribute("messageType", "danger");
         }
-        return "redirect:/administration/positions";
-    }
-
-    // Metoda pomocnicza do obsługi błędów
-    @ExceptionHandler(Exception.class)
-    public String handleError(Exception e, RedirectAttributes redirectAttributes) {
-        log.error("Wystąpił błąd podczas operacji na stanowisku", e);
-        redirectAttributes.addFlashAttribute("errorMessage",
-                "Wystąpił nieoczekiwany błąd. Spróbuj ponownie później.");
         return "redirect:/administration/positions";
     }
 }

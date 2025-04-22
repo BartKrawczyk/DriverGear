@@ -11,9 +11,18 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Lista stanowisk</h1>
-        <a th:href="@{/administration/positions/new}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Dodaj nowe stanowisko
-        </a>
+        <div>
+            <form th:action="@{/administration/positions}" method="get" class="d-inline-block me-2">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="showInactive" name="showInactive"
+                           th:checked="${showInactive}" onchange="this.form.submit()">
+                    <label class="form-check-label" for="showInactive">Pokaż nieaktywne stanowiska</label>
+                </div>
+            </form>
+            <a th:href="@{/administration/positions/new}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Dodaj nowe stanowisko
+            </a>
+        </div>
     </div>
 
     <div class="table-responsive">
@@ -24,16 +33,33 @@
                 <th>Nazwa</th>
                 <th>Kod</th>
                 <th>Dział</th>
+                <th>Kierownik działu</th>
+                <th>Status</th>
+                <th>Liczba pracowników</th>
                 <th>Opis</th>
                 <th>Akcje</th>
             </tr>
             </thead>
             <tbody>
-            <tr th:each="position : ${positions}">
+            <tr th:each="position : ${positions}" th:class="${!position.active} ? 'table-secondary' : ''">
                 <td th:text="${position.id}">1</td>
                 <td th:text="${position.name}">Nazwa</td>
                 <td th:text="${position.code}">Kod</td>
-                <td th:text="${position.departmentName}">Dział</td>
+                <td>
+                    <span th:text="${position.departmentName}">Dział</span>
+                    <span th:if="${!position.departmentActive}" class="badge bg-warning"
+                          title="Dział jest nieaktywny">!</span>
+                </td>
+                <td th:text="${position.departmentManagerName ?: 'Nie przypisano'}">Kierownik</td>
+                <td>
+                    <span th:if="${position.active}" class="badge bg-success">Aktywne</span>
+                    <span th:unless="${position.active}" class="badge bg-secondary">Nieaktywne</span>
+                </td>
+                <td>
+                    <span th:text="${position.employeeCount}">0</span>
+                    <i th:if="${position.employeeCount > 0}" class="bi bi-people-fill text-primary"
+                       title="Stanowisko ma przypisanych pracowników"></i>
+                </td>
                 <td th:text="${position.description}">Opis</td>
                 <td>
                     <div class="btn-group" role="group">
@@ -41,8 +67,25 @@
                            class="btn btn-sm btn-warning">
                             <i class="bi bi-pencil"></i> Edytuj
                         </a>
+                        <form th:if="${position.active}"
+                              th:action="@{/administration/positions/{id}/deactivate(id=${position.id})}"
+                              method="post" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-secondary"
+                                    onclick="return confirm('Czy na pewno chcesz dezaktywować to stanowisko?')">
+                                <i class="bi bi-power"></i> Dezaktywuj
+                            </button>
+                        </form>
+                        <form th:unless="${position.active}"
+                              th:action="@{/administration/positions/{id}/activate(id=${position.id})}"
+                              method="post" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-success"
+                                    th:disabled="${!position.departmentActive}">
+                                <i class="bi bi-power"></i> Aktywuj
+                            </button>
+                        </form>
                         <a th:href="@{/administration/positions/{id}/delete(id=${position.id})}"
                            class="btn btn-sm btn-danger"
+                           th:if="${position.employeeCount == 0}"
                            onclick="return confirm('Czy na pewno chcesz usunąć to stanowisko?')">
                             <i class="bi bi-trash"></i> Usuń
                         </a>
@@ -50,7 +93,7 @@
                 </td>
             </tr>
             <tr th:if="${#lists.isEmpty(positions)}">
-                <td colspan="6" class="text-center">Brak stanowisk</td>
+                <td colspan="9" class="text-center">Brak stanowisk</td>
             </tr>
             </tbody>
         </table>
@@ -61,3 +104,4 @@
 <div th:replace="components :: scripts"></div>
 </body>
 </html>
+

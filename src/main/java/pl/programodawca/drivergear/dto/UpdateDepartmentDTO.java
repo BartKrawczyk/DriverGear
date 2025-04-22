@@ -1,46 +1,63 @@
 package pl.programodawca.drivergear.dto;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import javax.validation.constraints.NotNull;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import pl.programodawca.drivergear.model.Department;
 
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class UpdateDepartmentDTO {
+    @NotNull(message = "ID działu jest wymagane")
     private Long id;
 
-    @NotBlank(message = "Nazwa jest wymagana")
-    @Size(min = 2, max = 50, message = "Nazwa musi mieć od 2 do 50 znaków")
-    private String name;
-
-    @NotBlank(message = "Kod jest wymagany")
-    @Size(min = 2, max = 10, message = "Kod musi mieć od 2 do 10 znaków")
+    @NotBlank(message = "Kod działu jest wymagany")
     private String code;
+
+    @NotBlank(message = "Nazwa działu jest wymagana")
+    private String name;
 
     private String description;
 
-    public DepartmentDTO toDepartmentDTO() {
-        return DepartmentDTO.builder()
-                .id(this.id)
-                .name(this.name)
-                .code(this.code)
-                .description(this.description)
-                .build();
+    private boolean active;
+
+    public void updateEntity(Department department) {
+        if (department == null) {
+            throw new IllegalArgumentException("Department nie może być null");
+        }
+        department.setCode(code);
+        department.setName(name);
+        department.setDescription(description);
+        department.setActive(active);
+    }
+
+    public static UpdateDepartmentDTO fromEntity(Department department) {
+        if (department == null) {
+            throw new IllegalArgumentException("Department nie może być null");
+        }
+
+        UpdateDepartmentDTO dto = new UpdateDepartmentDTO();
+        dto.setId(department.getId());
+        dto.setCode(department.getCode());
+        dto.setName(department.getName());
+        dto.setDescription(department.getDescription());
+        dto.setActive(department.isActive());
+        return dto;
     }
 
     public static UpdateDepartmentDTO fromDepartmentDTO(DepartmentDTO departmentDTO) {
-        return UpdateDepartmentDTO.builder()
-                .id(departmentDTO.getId())
-                .name(departmentDTO.getName())
-                .code(departmentDTO.getCode())
-                .description(departmentDTO.getDescription())
-                .build();
+        if (departmentDTO == null) {
+            throw new IllegalArgumentException("DepartmentDTO nie może być null");
+        }
+
+        UpdateDepartmentDTO dto = new UpdateDepartmentDTO();
+        dto.setId(departmentDTO.getId());
+        dto.setCode(departmentDTO.getCode());
+        dto.setName(departmentDTO.getName());
+        dto.setDescription(departmentDTO.getDescription());
+        dto.setActive(departmentDTO.isActive());
+        return dto;
     }
 }
+
 
 

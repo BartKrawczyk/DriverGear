@@ -1,11 +1,13 @@
 package pl.programodawca.drivergear.service.impl;
 
 import org.springframework.stereotype.Service;
+import pl.programodawca.drivergear.dto.EmployeeDTO;
 import pl.programodawca.drivergear.model.Employee;
 import pl.programodawca.drivergear.repository.EmployeeRepository;
 import pl.programodawca.drivergear.service.EmployeeService;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
@@ -42,6 +44,20 @@ public class EmployeeServiceImpl implements EmployeeService {
         existingEmployee.setMonetaryEquivalent(employee.getMonetaryEquivalent());
         // Update other fields if necessary
         return employeeRepository.save(existingEmployee);
+    }
+
+    @Override
+    public List<EmployeeDTO> getAllActiveEmployees() {
+        return employeeRepository.findByActiveTrue().stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+    private EmployeeDTO mapToDTO(Employee employee) {
+        EmployeeDTO dto = new EmployeeDTO();
+        dto.setId(employee.getId());
+        dto.setFullName(employee.getFirstName() + " " + employee.getLastName());
+        return dto;
     }
 
     @Override

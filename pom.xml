@@ -14,9 +14,6 @@
     <packaging>war</packaging>
     <name>DriverGear</name>
     <description>DriverGear</description>
-    <properties>
-        <java.version>17</java.version>
-    </properties>
     <dependencies>
 
         <dependency>
@@ -99,6 +96,14 @@
                 <configuration>
                     <source>17</source>
                     <target>17</target>
+                    <annotationProcessorPaths>
+
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
             <plugin>
@@ -107,5 +112,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

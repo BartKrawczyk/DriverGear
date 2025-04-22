@@ -6,36 +6,27 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
-import java.util.HashSet;
+import javax.validation.constraints.PositiveOrZero;
+import java.math.BigDecimal;
 import java.util.Set;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
-public class Department {
+public class Workwear {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
-    @Column(unique = true)
-    private String code;
-
-    @NotBlank
+    @NotBlank(message = "Nazwa jest wymagana")
     private String name;
 
     private String description;
 
-    @OneToMany(mappedBy = "department")
-    private Set<Position> positions = new HashSet<>();
+    @PositiveOrZero(message = "Cena nie może być ujemna")
+    private BigDecimal price;
 
-    @Column(nullable = false)
-    private boolean active = true;
-
-    @OneToMany(mappedBy = "department")
-    private Set<Employee> employees = new HashSet<>();
-
+    @ManyToMany(mappedBy = "assignedWorkwear")
+    private Set<Employee> employees;
 }
-
-

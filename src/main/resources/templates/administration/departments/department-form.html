@@ -9,52 +9,73 @@
 <div class="container">
   <div th:replace="components :: messages"></div>
 
-  <h1 class="mb-4" th:text="${isNew} ? 'Dodaj nowy dział' : 'Edycja działu'">Dział</h1>
+  <h1 class="mb-4" th:text="${title}">Dział</h1>
 
   <form th:action="@{${isNew ? '/administration/departments' : '/administration/departments/' + departmentDTO.id}}"
-        th:method="post"
+        method="post"
         th:object="${departmentDTO}"
         class="needs-validation"
         novalidate>
 
-    <div class="mb-3">
-      <label for="name" class="form-label">Nazwa działu:</label>
-      <input type="text"
-             class="form-control"
-             id="name"
-             th:field="*{name}"
-             th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'"
-             required>
-      <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}"
-           th:errors="*{name}">Błąd nazwy</div>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="mb-3">
+          <label for="name" class="form-label">Nazwa działu:</label>
+          <input type="text"
+                 class="form-control"
+                 id="name"
+                 th:field="*{name}"
+                 th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'"
+                 required>
+          <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}"
+               th:errors="*{name}">Błąd nazwy</div>
+        </div>
+
+        <div class="mb-3">
+          <label for="code" class="form-label">Kod działu:</label>
+          <input type="text"
+                 class="form-control"
+                 id="code"
+                 th:field="*{code}"
+                 th:classappend="${#fields.hasErrors('code')} ? 'is-invalid'"
+                 required>
+          <div class="invalid-feedback" th:if="${#fields.hasErrors('code')}"
+               th:errors="*{code}">Błąd kodu</div>
+        </div>
+
+        <div class="mb-3">
+          <label for="description" class="form-label">Opis:</label>
+          <textarea class="form-control"
+                    id="description"
+                    th:field="*{description}"
+                    th:classappend="${#fields.hasErrors('description')} ? 'is-invalid'"
+                    rows="3"></textarea>
+          <div class="invalid-feedback" th:if="${#fields.hasErrors('description')}"
+               th:errors="*{description}">Błąd opisu</div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="form-check mb-3" th:if="${!isNew}">
+          <input class="form-check-input" type="checkbox" id="active"
+                 th:field="*{active}"
+                 th:classappend="${#fields.hasErrors('active')} ? 'is-invalid'">
+          <label class="form-check-label" for="active">
+            Dział aktywny
+          </label>
+          <div class="invalid-feedback" th:if="${#fields.hasErrors('active')}"
+               th:errors="*{active}">Błąd statusu</div>
+        </div>
+      </div>
     </div>
 
     <div class="mb-3">
-      <label for="code" class="form-label">Kod działu:</label>
-      <input type="text"
-             class="form-control"
-             id="code"
-             th:field="*{code}"
-             th:classappend="${#fields.hasErrors('code')} ? 'is-invalid'"
-             required>
-      <div class="invalid-feedback" th:if="${#fields.hasErrors('code')}"
-           th:errors="*{code}">Błąd kodu</div>
-    </div>
-
-    <div class="mb-3">
-      <label for="description" class="form-label">Opis:</label>
-      <textarea class="form-control"
-                id="description"
-                th:field="*{description}"
-                th:classappend="${#fields.hasErrors('description')} ? 'is-invalid'"
-                rows="3"></textarea>
-      <div class="invalid-feedback" th:if="${#fields.hasErrors('description')}"
-           th:errors="*{description}">Błąd opisu</div>
-    </div>
-
-    <div class="mb-3">
-      <button type="submit" class="btn btn-primary">Zapisz</button>
-      <a th:href="@{/administration/departments}" class="btn btn-secondary">Anuluj</a>
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-save"></i> Zapisz
+      </button>
+      <a th:href="@{/administration/departments}" class="btn btn-secondary">
+        <i class="bi bi-x-circle"></i> Anuluj
+      </a>
     </div>
   </form>
 </div>

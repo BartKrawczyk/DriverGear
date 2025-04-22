@@ -1,30 +1,32 @@
 package pl.programodawca.drivergear.model;
 
 import javax.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
+import javax.validation.constraints.NotBlank;
+
+import lombok.*;
 
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
+@Table(name = "positions")
 @Getter
 @Setter
 @NoArgsConstructor
-@Table(name = "positions")
 public class Position {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
-    private String code;
-
+    @Column
     private String description;
+
+    @Column(nullable = false)
+    private boolean active = true;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id", nullable = false)
@@ -33,5 +35,8 @@ public class Position {
     @OneToMany(mappedBy = "position")
     private Set<Employee> employees = new HashSet<>();
 }
+
+
+
 
 

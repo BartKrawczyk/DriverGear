@@ -1,36 +1,33 @@
 package pl.programodawca.drivergear.dto;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import pl.programodawca.drivergear.model.Department;
 
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class CreateDepartmentDTO {
-    @NotBlank(message = "Nazwa jest wymagana")
-    @Size(min = 2, max = 50, message = "Nazwa musi mieć od 2 do 50 znaków")
-    private String name;
-
-    @NotBlank(message = "Kod jest wymagany")
-    @Size(min = 2, max = 10, message = "Kod musi mieć od 2 do 10 znaków")
+    @NotBlank(message = "Kod działu jest wymagany")
     private String code;
+
+    @NotBlank(message = "Nazwa działu jest wymagana")
+    private String name;
 
     private String description;
 
-    // Metoda konwersji na DepartmentDTO
-    public DepartmentDTO toDepartmentDTO() {
-        return DepartmentDTO.builder()
-                .name(this.name)
-                .code(this.code)
-                .description(this.description)
-                .build();
+    public Department toEntity() {
+        Department department = new Department();
+        department.setCode(code);
+        department.setName(name);
+        department.setDescription(description);
+        department.setActive(true);
+        return department;
     }
 }
+
+
+
+
+
 
 
 

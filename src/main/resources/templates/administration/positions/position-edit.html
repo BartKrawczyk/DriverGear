@@ -25,7 +25,9 @@
                                 <option value="">Wybierz dział</option>
                                 <option th:each="dept : ${departments}"
                                         th:value="${dept.id}"
-                                        th:text="${dept.name}"
+                                        th:text="${dept.name}">
+                                </option>
+
                             </select>
                             <div class="text-danger" th:if="${#fields.hasErrors('departmentId')}"
                                  th:errors="*{departmentId}"></div>

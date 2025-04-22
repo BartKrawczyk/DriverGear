@@ -8,6 +8,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import pl.programodawca.drivergear.repository.AppUserRepository;
 import pl.programodawca.drivergear.dto.CreateUserDTO;
 import pl.programodawca.drivergear.dto.AppUserDTO;
+import pl.programodawca.drivergear.service.impl.AppUserServiceImpl;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -18,7 +20,8 @@ class AppUserServiceTest {
     private AppUserRepository userRepository;
 
     @InjectMocks
-    private AppUserService userService;
+    private AppUserServiceImpl userService;  // zamiast private AppUserService userService
+
 
     @Test
     void shouldCreateUser() {
