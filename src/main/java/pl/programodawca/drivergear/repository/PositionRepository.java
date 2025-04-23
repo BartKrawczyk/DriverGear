@@ -14,9 +14,17 @@ public interface PositionRepository extends JpaRepository<Position, Long> {
     List<Position> findByDepartmentId(Long departmentId);
     List<Position> findByDepartmentIdAndActive(Long departmentId, boolean active);
     List<Position> findByActive(boolean active);
+
+    // Istniejące metody dla name
     boolean existsByNameAndDepartmentId(String name, Long departmentId);
     boolean existsByNameAndDepartmentIdAndIdNot(String name, Long departmentId, Long id);
+
+    // Nowe metody dla code
+    boolean existsByCode(String code);
+    boolean existsByCodeAndIdNot(String code, Long id);
+    Optional<Position> findByCode(String code);
 }
+
 
 
 

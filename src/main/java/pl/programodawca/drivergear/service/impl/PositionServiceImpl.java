@@ -65,6 +65,13 @@ public class PositionServiceImpl implements PositionService {
     }
 
     @Override
+    public PositionDTO findPositionByCode(String code) {
+        Position position = positionRepository.findByCode(code)
+                .orElseThrow(() -> new ResourceNotFoundException("Stanowisko", "kod", code));
+        return PositionDTO.fromEntity(position);
+    }
+
+    @Override
     public PositionDTO createPosition(CreatePositionDTO createPositionDTO) {
         Department department = departmentRepository.findById(createPositionDTO.getDepartmentId())
                 .orElseThrow(() -> new ResourceNotFoundException("Dział", "id", createPositionDTO.getDepartmentId()));
@@ -73,11 +80,11 @@ public class PositionServiceImpl implements PositionService {
             throw new ResourceAlreadyExistsException("Stanowisko o takiej nazwie już istnieje w tym dziale");
         }
 
-        Position position = new Position();
-        position.setName(createPositionDTO.getName());
-        position.setDescription(createPositionDTO.getDescription());
-        position.setDepartment(department);
+        if (positionRepository.existsByCode(createPositionDTO.getCode())) {
+            throw new ResourceAlreadyExistsException("Stanowisko o takim kodzie już istnieje");
+        }
 
+        Position position = createPositionDTO.toEntity(department);
         return PositionDTO.fromEntity(positionRepository.save(position));
     }
 
@@ -94,7 +101,12 @@ public class PositionServiceImpl implements PositionService {
             throw new ResourceAlreadyExistsException("Stanowisko o takiej nazwie już istnieje w tym dziale");
         }
 
+        if (positionRepository.existsByCodeAndIdNot(updatePositionDTO.getCode(), id)) {
+            throw new ResourceAlreadyExistsException("Stanowisko o takim kodzie już istnieje");
+        }
+
         position.setName(updatePositionDTO.getName());
+        position.setCode(updatePositionDTO.getCode());
         position.setDescription(updatePositionDTO.getDescription());
         position.setActive(updatePositionDTO.isActive());
         position.setDepartment(department);
@@ -113,7 +125,19 @@ public class PositionServiceImpl implements PositionService {
 
         positionRepository.delete(position);
     }
+
+    @Override
+    public boolean isCodeUnique(String code) {
+        return !positionRepository.existsByCode(code);
+    }
+
+    @Override
+    public boolean isCodeUnique(String code, Long excludeId) {
+        return !positionRepository.existsByCodeAndIdNot(code, excludeId);
+    }
 }
+
+
 
 
 

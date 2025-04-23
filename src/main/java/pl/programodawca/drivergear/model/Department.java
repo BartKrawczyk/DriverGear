@@ -33,9 +33,6 @@ public class Department {
     @Column(nullable = false)
     private boolean active = true;
 
-    @OneToMany(mappedBy = "department")
-    private Set<Employee> employees = new HashSet<>();
-
 }
 
 

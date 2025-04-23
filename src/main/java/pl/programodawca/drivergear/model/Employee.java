@@ -21,28 +21,21 @@ public class Employee {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
     @Column(nullable = false)
     private String firstName;
 
-    @NotBlank
     @Column(nullable = false)
     private String lastName;
 
-    @Column(nullable = false, unique = true)
-    private String employeeNumber;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "department_id", nullable = false)
-    private Department department;
-
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "position_id", nullable = false)
     private Position position;
 
     @Column(nullable = false)
-    private boolean active = true;
+    private boolean active = true;  // domyślnie true przy tworzeniu
 
-    // Dodatkowe pola jak data zatrudnienia, PESEL, itp. możemy dodać później
+
+    // Inne potrzebne pola, np. dane kontaktowe, data zatrudnienia itp.
 }
+
 

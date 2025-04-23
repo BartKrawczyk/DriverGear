@@ -14,10 +14,16 @@ public interface PositionService {
     List<PositionDTO> findPositionsByDepartment(Long departmentId);
     List<PositionDTO> findActivePositionsByDepartment(Long departmentId);
     PositionDTO findPositionById(Long id);
+    PositionDTO findPositionByCode(String code);
     PositionDTO createPosition(CreatePositionDTO createPositionDTO);
     PositionDTO updatePosition(Long id, UpdatePositionDTO updatePositionDTO);
     void deletePosition(Long id);
+
+    // Metody pomocnicze do walidacji
+    boolean isCodeUnique(String code);
+    boolean isCodeUnique(String code, Long excludeId);
 }
+
 
 
 

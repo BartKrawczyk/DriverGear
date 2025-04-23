@@ -39,9 +39,13 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
     /**
      * Sprawdza czy dział ma aktywnych pracowników
      */
-    @Query("SELECT CASE WHEN COUNT(e) > 0 THEN true ELSE false END FROM Employee e " +
-            "WHERE e.position.department.id = :departmentId AND e.active = true")
+    @Query("SELECT CASE WHEN COUNT(e) > 0 THEN true ELSE false END " +
+            "FROM Employee e " +
+            "WHERE e.position.department.id = :departmentId " +
+            "AND e.active = true")
     boolean hasActiveEmployees(@Param("departmentId") Long departmentId);
+
+
 
     /**
      * Dezaktywuje dział (soft delete)

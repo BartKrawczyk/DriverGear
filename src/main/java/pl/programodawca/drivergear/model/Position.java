@@ -9,7 +9,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "positions")
+@Table(uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"name", "department_id"},
+                name = "uk_position_name_department")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -21,6 +24,10 @@ public class Position {
     @NotBlank
     @Column(nullable = false)
     private String name;
+
+    @NotBlank
+    @Column(nullable = false, unique = true)
+    private String code;
 
     @Column
     private String description;
@@ -35,6 +42,7 @@ public class Position {
     @OneToMany(mappedBy = "position")
     private Set<Employee> employees = new HashSet<>();
 }
+
 
 
 

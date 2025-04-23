@@ -66,13 +66,34 @@ public class PositionController {
         return "administration/positions/position-form";
     }
 
+    @GetMapping("/check-code")
+    @ResponseBody
+    public ResponseEntity<Boolean> checkCodeAvailability(@RequestParam String code,
+                                                         @RequestParam(required = false) Long excludeId) {
+        boolean isAvailable = excludeId != null
+                ? positionService.isCodeUnique(code, excludeId)
+                : positionService.isCodeUnique(code);
+        return ResponseEntity.ok(isAvailable);
+    }
+
+    @GetMapping("/by-code/{code}")
+    @ResponseBody
+    public ResponseEntity<PositionDTO> getPositionByCode(@PathVariable String code) {
+        try {
+            PositionDTO position = positionService.findPositionByCode(code);
+            return ResponseEntity.ok(position);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     @PostMapping
     public String createPosition(@Valid @ModelAttribute("positionDTO") CreatePositionDTO createPositionDTO,
                                  BindingResult bindingResult,
                                  RedirectAttributes redirectAttributes,
                                  Model model) {
         if (bindingResult.hasErrors()) {
-            model.addAttribute("departments", departmentService.getAllActiveDepartments()); // POPRAWIONE
+            model.addAttribute("departments", departmentService.getAllActiveDepartments());
             model.addAttribute("isNew", true);
             model.addAttribute("title", "Dodaj nowe stanowisko");
             return "administration/positions/position-form";
@@ -84,7 +105,11 @@ public class PositionController {
             redirectAttributes.addFlashAttribute("messageType", "success");
             return "redirect:/administration/positions";
         } catch (ResourceAlreadyExistsException e) {
-            bindingResult.rejectValue("name", "error.position", e.getMessage());
+            if (e.getMessage().contains("kod")) {
+                bindingResult.rejectValue("code", "error.position", e.getMessage());
+            } else {
+                bindingResult.rejectValue("name", "error.position", e.getMessage());
+            }
             model.addAttribute("departments", departmentService.getAllActiveDepartments());
             model.addAttribute("isNew", true);
             model.addAttribute("title", "Dodaj nowe stanowisko");
@@ -99,15 +124,19 @@ public class PositionController {
         try {
             PositionDTO positionDTO = positionService.findPositionById(id);
             UpdatePositionDTO updatePositionDTO = new UpdatePositionDTO();
-            // ... mapowanie pól
+            updatePositionDTO.setId(positionDTO.getId());
+            updatePositionDTO.setName(positionDTO.getName());
+            updatePositionDTO.setCode(positionDTO.getCode());
+            updatePositionDTO.setDescription(positionDTO.getDescription());
+            updatePositionDTO.setActive(positionDTO.isActive());
+            updatePositionDTO.setDepartmentId(positionDTO.getDepartmentId());
 
             model.addAttribute("positionDTO", updatePositionDTO);
-            model.addAttribute("departments", departmentService.getAllActiveDepartments()); // POPRAWIONE
+            model.addAttribute("departments", departmentService.getAllActiveDepartments());
             model.addAttribute("isNew", false);
             model.addAttribute("title", "Edycja stanowiska");
             return "administration/positions/position-form";
         } catch (ResourceNotFoundException e) {
-
             redirectAttributes.addFlashAttribute("message", e.getMessage());
             redirectAttributes.addFlashAttribute("messageType", "danger");
             return "redirect:/administration/positions";
@@ -121,7 +150,7 @@ public class PositionController {
                                  RedirectAttributes redirectAttributes,
                                  Model model) {
         if (bindingResult.hasErrors()) {
-            model.addAttribute("departments", departmentService.getAllActiveDepartments()); // POPRAWIONE
+            model.addAttribute("departments", departmentService.getAllActiveDepartments());
             model.addAttribute("isNew", false);
             model.addAttribute("title", "Edycja stanowiska");
             return "administration/positions/position-form";
@@ -133,13 +162,18 @@ public class PositionController {
             redirectAttributes.addFlashAttribute("messageType", "success");
             return "redirect:/administration/positions";
         } catch (ResourceNotFoundException | ResourceAlreadyExistsException e) {
-            bindingResult.rejectValue("name", "error.position", e.getMessage());
+            if (e instanceof ResourceAlreadyExistsException && e.getMessage().contains("kod")) {
+                bindingResult.rejectValue("code", "error.position", e.getMessage());
+            } else {
+                bindingResult.rejectValue("name", "error.position", e.getMessage());
+            }
             model.addAttribute("departments", departmentService.getAllActiveDepartments());
             model.addAttribute("isNew", false);
             model.addAttribute("title", "Edycja stanowiska");
             return "administration/positions/position-form";
         }
     }
+
 
     @PostMapping("/{id}/delete")
     public String deletePosition(@PathVariable Long id,
