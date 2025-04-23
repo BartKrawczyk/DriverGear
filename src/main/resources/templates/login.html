@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pl" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="components :: site-head">
+    <title>Logowanie</title>
+</head>
+<body class="d-flex flex-column min-vh-100 bg-light">
+<div class="container flex-grow-1 d-flex align-items-center justify-content-center py-5">
+    <div class="card shadow-sm" style="max-width: 400px;">
+        <div class="card-body p-4">
+            <div class="text-center mb-4">
+                <img src="/images/DG_logo.svg" alt="DriverGear Logo" class="img-fluid mb-3" style="max-width: 150px;">
+                <h2 class="kanit-light">Logowanie</h2>
+            </div>
+
+            <form th:action="@{/login}" method="post">
+                <div class="mb-3">
+                    <label for="username" class="form-label kanit-light">Nazwa użytkownika</label>
+                    <input type="text"
+                           class="form-control"
+                           id="username"
+                           name="username"
+                           required
+                           autocomplete="username">
+                </div>
+
+                <div class="mb-4">
+                    <label for="password" class="form-label kanit-light">Hasło</label>
+                    <input type="password"
+                           class="form-control"
+                           id="password"
+                           name="password"
+                           required
+                           autocomplete="current-password">
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary kanit-light">
+                        Zaloguj się
+                    </button>
+                </div>
+
+                <div th:if="${param.error}" class="alert alert-danger mt-3" role="alert">
+                    Nieprawidłowa nazwa użytkownika lub hasło.
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div th:replace="components :: footer"></div>
+<div th:replace="components :: scripts"></div>
+</body>
+</html>
+

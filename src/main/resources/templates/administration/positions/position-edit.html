@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="components :: site-head">
+    <title>Edytuj stanowisko</title>
+</head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="components :: navigation"></nav>
+
+<div class="container">
+    <div th:replace="components :: messages"></div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Edytuj stanowisko</h2>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/administration/positions/{id}/edit(id=${id})}"
+                          th:object="${position}" method="post">
+
+                    <div class="mb-3">
+                            <label for="department" class="form-label">Dział</label>
+                            <select id="department" th:field="*{departmentId}" class="form-select" required>
+                                <option value="">Wybierz dział</option>
+                                <option th:each="dept : ${departments}"
+                                        th:value="${dept.id}"
+                                        th:text="${dept.name}">
+                                </option>
+
+                            </select>
+                            <div class="text-danger" th:if="${#fields.hasErrors('departmentId')}"
+                                 th:errors="*{departmentId}"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Nazwa stanowiska</label>
+                            <input type="text" class="form-control" id="name" th:field="*{name}" required>
+                            <div class="text-danger" th:if="${#fields.hasErrors('name')}"
+                                 th:errors="*{name}"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="code" class="form-label">Kod stanowiska</label>
+                            <input type="text" class="form-control" id="code" th:field="*{code}" required
+                                   pattern="[A-Za-z0-9]+" title="Kod może zawierać tylko litery i cyfry">
+                            <div class="text-danger" th:if="${#fields.hasErrors('code')}"
+                                 th:errors="*{code}"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Opis</label>
+                            <textarea class="form-control" id="description" th:field="*{description}"
+                                      rows="3"></textarea>
+                            <div class="text-danger" th:if="${#fields.hasErrors('description')}"
+                                 th:errors="*{description}"></div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a th:href="@{/administration/positions}" class="btn btn-secondary me-md-2">Anuluj</a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Zapisz zmiany
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="components :: footer"></div>
+<div th:replace="components :: scripts"></div>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="components :: site-head">
+    <title>Edytuj użytkownika</title>
+</head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="components :: navigation"></nav>
+
+<div class="container">
+    <div th:replace="components :: messages"></div>
+
+    <h1 class="mb-4">Edytuj użytkownika: <span th:text="${updateUserDTO.username}" class="fst-italic"></span></h1>
+
+
+    <form th:action="@{/administration/users/{id}(id=${updateUserDTO.id})}" th:method="post"
+          th:object="${updateUserDTO}" class="needs-validation" novalidate>
+
+        <div class="mb-3">
+            <label for="firstName" class="form-label">Imię:</label>
+            <input type="text" class="form-control" id="firstName" th:field="*{firstName}"
+                   th:classappend="${#fields.hasErrors('firstName')} ? 'is-invalid'" required>
+            <div class="invalid-feedback" th:if="${#fields.hasErrors('firstName')}"
+                 th:errors="*{firstName}">Błąd imienia</div>
+        </div>
+
+        <div class="mb-3">
+            <label for="lastName" class="form-label">Nazwisko:</label>
+            <input type="text" class="form-control" id="lastName" th:field="*{lastName}"
+                   th:classappend="${#fields.hasErrors('lastName')} ? 'is-invalid'" required>
+            <div class="invalid-feedback" th:if="${#fields.hasErrors('lastName')}"
+                 th:errors="*{lastName}">Błąd nazwiska</div>
+        </div>
+
+        <div class="mb-3">
+            <label for="role" class="form-label">Rola:</label>
+            <select class="form-select" id="role" th:field="*{role}">
+                <option th:each="roleOpt : ${T(pl.programodawca.drivergear.model.UserRole).values()}"
+                        th:value="${roleOpt}"
+                        th:text="${roleOpt}">USER</option>
+            </select>
+        </div>
+
+        <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="locked" th:field="*{locked}">
+            <label class="form-check-label" for="locked">Konto zablokowane</label>
+        </div>
+
+        <div class="mb-3">
+            <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
+            <a th:href="@{/administration/users}" class="btn btn-secondary">Anuluj</a>
+        </div>
+    </form>
+</div>
+
+<div th:replace="components :: footer"></div>
+<div th:replace="components :: scripts"></div>
+</body>
+</html>

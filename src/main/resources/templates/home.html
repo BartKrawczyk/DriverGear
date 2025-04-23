@@ -1,0 +1,50 @@
+<!--<!DOCTYPE html>-->
+<!--<html xmlns:th="http://www.thymeleaf.org"-->
+<!--      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"-->
+<!--      layout:decorator="layout.html" lang="pl">-->
+
+<!--<body>-->
+<!--<div layout:fragment="content">-->
+<!--  <h1>Witamy na stronie DriverGear!</h1>-->
+<!--  <p>-->
+<!--    <a th:href="@{/login}">-->
+<!--      <button type="button" class="btn btn-primary">Zaloguj się</button>-->
+<!--    </a>-->
+<!--  </p>-->
+<!--</div>-->
+<!--</body>-->
+<!--</html>-->
+<!--<!DOCTYPE html>-->
+<!--<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"-->
+<!--      layout:decorate="~{layout}">-->
+<!--<body>-->
+<!--<section layout:fragment="content">-->
+<!--  <h1>Witamy na stronie DriverGear!</h1>-->
+<!--  <p>-->
+<!--    <a th:href="@{/login}">-->
+<!--      <button type="button" class="btn btn-primary">Zaloguj się</button>-->
+<!--    </a>-->
+<!--  </p>-->
+<!--</section>-->
+<!--</body>-->
+<!--</html>-->
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head th:replace="components_old :: site-head"></head>
+<body>
+<section layout:fragment="content">
+  <h1>Witamy na stronie DriverGear!</h1>
+  <p>
+    <a th:href="@{/login}">
+      <button type="button" class="btn btn-primary">Zaloguj się</button>
+    </a>
+  </p>
+</section>
+</body>
+</html>
+
+
+
+

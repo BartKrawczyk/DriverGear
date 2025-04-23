@@ -1,0 +1,128 @@
+@charset "UTF-8";
+@import url("https://fonts.googleapis.com/css2?family=Kanit:wght@300&display=swap");
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  background-color: #f9f9f9;
+  color: #444444;
+  font-family: "Montserrat", sans-serif;
+  font-size: 1rem;
+  margin: 0;
+  padding: 0;
+  display: flex; /* Użyj flexboxa do rozmieszczenia elementów */
+  flex-direction: column; /* Elementy układane w kolumnach */
+}
+
+.kanit-light {
+  font-family: "Kanit", sans-serif;
+  font-weight: 300;
+}
+
+.table {
+  width: 100%;
+  border: 1px solid #000000;
+}
+
+.table-header {
+  display: flex;
+  width: 100%;
+  background: #000;
+  padding: 0;
+}
+
+.table-row {
+  display: flex;
+  width: 100%;
+  padding: 0;
+}
+.table-row:nth-of-type(odd) {
+  background: #ffffff;
+}
+
+.table-data, .header__item {
+  flex: 1 1 20%;
+  text-align: center;
+}
+
+.header__item {
+  text-transform: uppercase;
+}
+
+.filter__link {
+  color: white;
+  text-decoration: none;
+  position: relative;
+  display: inline-block;
+  padding-left: 0;
+  padding-right: 0;
+}
+.filter__link::after {
+  content: "";
+  position: absolute;
+  right: -1;
+  color: white;
+  font-size: 1;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.filter__link.desc::after {
+  content: "(desc)";
+}
+.filter__link.asc::after {
+  content: "(asc)";
+}
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  flex-direction: column;
+}
+.login-container form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  max-width: 300px;
+}
+
+.error-message {
+  margin-top: 20px;
+}
+
+.login-button {
+  width: 75%; /* Skrócenie przycisku o 1/4 */
+  display: block;
+  margin: auto;
+  font-size: 0.875rem; /* Czcionka o wielkości 14px */
+  background-color: #3E5CC5; /* Niebieskie tło */
+  color: #FFFFFF; /* Białe litery */
+  border: none; /* Bez obramowania */
+  padding: 5px 10px; /* Odstępy wewnętrzne 5px na górę i dół, 10px na lewo i prawo */
+  border-radius: 5px; /* Zaokrąglenie rogów przycisku */
+  cursor: pointer; /* Kursor ręki dla lepszej interaktywności */
+}
+
+.login-button:hover {
+  background-color: #3853b4;
+}
+
+.form-field {
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+#password-field {
+  margin-top: 2px;
+  margin-top: 2px;
+}
+
+.login-error-message {
+  margin-top: 20px;
+}
+
+/*# sourceMappingURL=style.css.map */
