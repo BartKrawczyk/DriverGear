@@ -9,7 +9,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(uniqueConstraints = {
+@Table(name = "positions", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"name", "department_id"},
                 name = "uk_position_name_department")
 })
@@ -41,6 +41,9 @@ public class Position {
 
     @OneToMany(mappedBy = "position")
     private Set<Employee> employees = new HashSet<>();
+
+    @OneToMany(mappedBy = "position")
+    private Set<PositionClothingAllowance> standardAllowances = new HashSet<>();
 }
 
 

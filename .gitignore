@@ -47,3 +47,4 @@ logs/
 ### Windows ###
 Thumbs.db
 Desktop.ini
+/src/main/resources/application.properties

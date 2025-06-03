@@ -37,7 +37,7 @@
                 <td th:text="${appUser.lastName}">Nazwisko</td>
                 <td th:text="${appUser.username}">Username</td>
                 <td>
-                <span class="badge" th:classappend="${appUser.role == T(pl.programodawca.drivergear.model.UserRole).ADMIN ? 'bg-danger' : 'bg-primary'}"
+                <span class="badge" th:classappend="${appUser.role != null and appUser.role == T(pl.programodawca.drivergear.model.UserRole).ADMIN ? 'bg-danger' : 'bg-primary'}"
                       th:text="${appUser.role}">ROLE</span>
                 </td>
                 <td>
