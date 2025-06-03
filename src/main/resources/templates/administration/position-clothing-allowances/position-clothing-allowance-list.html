@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="components :: site-head">
+  <title>Przydziały odzieżowe dla stanowisk</title>
+</head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="components :: navigation"></nav>
+
+<div class="container">
+  <div th:replace="components :: messages"></div>
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Przydziały odzieżowe dla stanowisk</h1>
+    <a th:href="@{/administration/position-clothing-allowances/new}" class="btn btn-primary">
+      <i class="bi bi-plus-circle"></i> Dodaj nowy przydział
+    </a>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="mb-0">Filtry</h5>
+    </div>
+    <div class="card-body">
+      <form th:action="@{/administration/position-clothing-allowances}" method="get" class="row g-3">
+        <div class="col-md-4">
+          <label for="departmentId" class="form-label">Dział:</label>
+          <select class="form-select" id="departmentId" name="departmentId">
+            <option value="">Wszystkie działy</option>
+            <option th:each="department : ${departments}"
+                    th:value="${department.id}"
+                    th:text="${department.name}"
+                    th:selected="${department.id == selectedDepartmentId}">
+            </option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label for="positionId" class="form-label">Stanowisko:</label>
+          <select class="form-select" id="positionId" name="positionId">
+            <option value="">Wszystkie stanowiska (ze wszystkich działów)</option>
+            <option th:each="position : ${positions}"
+                    th:value="${position.id}"
+                    th:text="${position.name}"
+                    th:selected="${position.id == selectedPositionId}">
+            </option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label for="clothingTypeId" class="form-label">Typ odzieży:</label>
+          <select class="form-select" id="clothingTypeId" name="clothingTypeId">
+            <option value="">Wszystkie typy</option>
+            <option th:each="clothingType : ${clothingTypes}"
+                    th:value="${clothingType.id}"
+                    th:text="${clothingType.name}"
+                    th:selected="${clothingType.id == selectedClothingTypeId}">
+            </option>
+          </select>
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-search"></i> Filtruj
+          </button>
+          <a th:href="@{/administration/position-clothing-allowances}" class="btn btn-secondary">
+            <i class="bi bi-x-circle"></i> Wyczyść filtry
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-striped table-hover">
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Dział</th>
+        <th>Stanowisko</th>
+        <th>Elementy odzieży</th>
+        <th>Status</th>
+        <th>Akcje</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:if="${#lists.isEmpty(allowances)}">
+        <td colspan="6" class="text-center">Brak przydziałów odzieżowych dla stanowisk</td>
+      </tr>
+      <tr th:each="allowance : ${allowances}">
+        <td th:text="${allowance.id}">1</td>
+        <td th:text="${allowance.departmentName}">Dział Transportu</td>
+        <td th:text="${allowance.positionName}">Kierowca</td>
+        <td>
+          <span th:if="${#lists.isEmpty(allowance.clothingItems)}" class="text-muted">Brak elementów</span>
+          <ul th:unless="${#lists.isEmpty(allowance.clothingItems)}" class="list-unstyled mb-0">
+            <li th:each="item : ${allowance.clothingItems}" class="mb-1">
+              <span th:text="${item.clothingTypeName}">Koszula</span>
+              <span class="text-muted">
+                (<span th:text="${item.quantity}">2</span> szt.,
+                <span th:text="${item.validityPeriod}">12</span> mies.,
+                <span th:if="${item.mandatory}" class="badge bg-success">Obowiązkowy</span>
+                <span th:unless="${item.mandatory}" class="badge bg-secondary">Opcjonalny</span>,
+                <span th:text="${#numbers.formatDecimal(item.compensationAmount, 1, 2)} + ' zł'">100.00 zł</span>)
+              </span>
+            </li>
+          </ul>
+        </td>
+        <td>
+          <span th:if="${allowance.active}" class="badge bg-success">Aktywny</span>
+          <span th:unless="${allowance.active}" class="badge bg-danger">Nieaktywny</span>
+        </td>
+        <td>
+          <div class="btn-group">
+            <a th:href="@{/administration/position-clothing-allowances/{id}/edit(id=${allowance.id})}" 
+               class="btn btn-sm btn-outline-primary" title="Edytuj">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <button type="button" class="btn btn-sm btn-outline-danger" 
+                    th:attr="data-bs-id=${allowance.id}" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#deleteModal" 
+                    title="Usuń">
+              <i class="bi bi-trash"></i>
+            </button>
+            <button th:if="${!allowance.active}" type="button" class="btn btn-sm btn-outline-success" 
+                    th:attr="data-bs-id=${allowance.id}" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#activateModal" 
+                    title="Aktywuj">
+              <i class="bi bi-check-circle"></i>
+            </button>
+            <button th:if="${allowance.active}" type="button" class="btn btn-sm btn-outline-warning" 
+                    th:attr="data-bs-id=${allowance.id}" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#deactivateModal" 
+                    title="Dezaktywuj">
+              <i class="bi bi-x-circle"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Potwierdź usunięcie</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Czy na pewno chcesz usunąć ten przydział odzieżowy dla stanowiska?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+        <form id="deleteForm" th:action="@{/administration/position-clothing-allowances/0/delete}" method="post">
+          <button type="submit" class="btn btn-danger">Usuń</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Activate Modal -->
+<div class="modal fade" id="activateModal" tabindex="-1" aria-labelledby="activateModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="activateModalLabel">Potwierdź aktywację</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Czy na pewno chcesz aktywować ten przydział odzieżowy dla stanowiska?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+        <form id="activateForm" th:action="@{/administration/position-clothing-allowances/0/activate}" method="post">
+          <button type="submit" class="btn btn-success">Aktywuj</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Deactivate Modal -->
+<div class="modal fade" id="deactivateModal" tabindex="-1" aria-labelledby="deactivateModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deactivateModalLabel">Potwierdź dezaktywację</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Czy na pewno chcesz dezaktywować ten przydział odzieżowy dla stanowiska?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+        <form id="deactivateForm" th:action="@{/administration/position-clothing-allowances/0/deactivate}" method="post">
+          <button type="submit" class="btn btn-warning">Dezaktywuj</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div th:replace="components :: footer"></div>
+<div th:replace="components :: scripts"></div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Handle delete modal
+    const deleteModal = document.getElementById('deleteModal');
+    if (deleteModal) {
+      deleteModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const id = button.getAttribute('data-bs-id');
+        const form = document.getElementById('deleteForm');
+        form.action = form.action.replace('/0/', '/' + id + '/');
+      });
+    }
+
+    // Handle activate modal
+    const activateModal = document.getElementById('activateModal');
+    if (activateModal) {
+      activateModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const id = button.getAttribute('data-bs-id');
+        const form = document.getElementById('activateForm');
+        form.action = form.action.replace('/0/', '/' + id + '/');
+      });
+    }
+
+    // Handle deactivate modal
+    const deactivateModal = document.getElementById('deactivateModal');
+    if (deactivateModal) {
+      deactivateModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const id = button.getAttribute('data-bs-id');
+        const form = document.getElementById('deactivateForm');
+        form.action = form.action.replace('/0/', '/' + id + '/');
+      });
+    }
+
+    // Handle department change to filter positions
+    const departmentSelect = document.getElementById('departmentId');
+    const positionSelect = document.getElementById('positionId');
+
+    if (departmentSelect && positionSelect) {
+      departmentSelect.addEventListener('change', function() {
+        const departmentId = this.value;
+
+        // Clear current positions and set appropriate placeholder
+        if (departmentId) {
+          positionSelect.innerHTML = '<option value="">Wszystkie stanowiska z wybranego działu</option>';
+        } else {
+          positionSelect.innerHTML = '<option value="">Wszystkie stanowiska (ze wszystkich działów)</option>';
+        }
+
+        // Determine which endpoint to use based on whether a department is selected
+        const url = departmentId 
+          ? `/administration/positions/by-department/${departmentId}`
+          : '/administration/positions/all';
+
+        // Fetch positions
+        fetch(url)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.json();
+          })
+          .then(positions => {
+            // Add positions to the dropdown
+            positions.forEach(position => {
+              const option = document.createElement('option');
+              option.value = position.id;
+              option.textContent = position.name;
+              positionSelect.appendChild(option);
+            });
+          })
+          .catch(error => {
+            console.error('Error fetching positions:', error);
+          });
+      });
+
+      // If department is already selected on page load, trigger the change event
+      if (departmentSelect.value) {
+        // Create and dispatch a change event
+        const event = new Event('change');
+        departmentSelect.dispatchEvent(event);
+      }
+    }
+  });
+</script>
+</body>
+</html>

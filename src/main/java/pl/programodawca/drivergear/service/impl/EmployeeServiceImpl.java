@@ -3,6 +3,7 @@ package pl.programodawca.drivergear.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -41,7 +42,10 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final PositionRepository positionRepository;
     private final DepartmentRepository departmentRepository;
     private final PositionClothingAllowanceService positionClothingAllowanceService;
+
+    @Lazy
     private final ClothingAssignmentService clothingAssignmentService;
+
     private final ClothingAllowanceService clothingAllowanceService;
 
     @Override

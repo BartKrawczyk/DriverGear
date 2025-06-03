@@ -1,0 +1,15 @@
+
+
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${title}">Tytuł strony</title>
+    <link th:href="@{/css/style.css}" rel="stylesheet" />
+</head>
+<body>
+<h1 th:text="${header}">Nagłówek</h1>
+<p th:text="${description}">Opis strony</p>
+</body>
+</html>

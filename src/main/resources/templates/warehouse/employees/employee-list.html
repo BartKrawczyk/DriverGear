@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="components :: site-head">
+    <title>Lista pracowników</title>
+</head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="components :: navigation"></nav>
+
+<div class="container">
+    <div th:replace="components :: messages"></div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Lista pracowników</h1>
+    </div>
+
+    <!-- Search Filters -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Filtry wyszukiwania</h5>
+        </div>
+        <div class="card-body">
+            <form th:action="@{/warehouse/employees}" method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="firstName" class="form-label">Imię</label>
+                    <input type="text" class="form-control" id="firstName" name="firstName" th:value="${firstName}">
+                </div>
+                <div class="col-md-4">
+                    <label for="lastName" class="form-label">Nazwisko</label>
+                    <input type="text" class="form-control" id="lastName" name="lastName" th:value="${lastName}">
+                </div>
+                <div class="col-md-4">
+                    <label for="employeeNumber" class="form-label">Numer pracownika</label>
+                    <input type="text" class="form-control" id="employeeNumber" name="employeeNumber" th:value="${employeeNumber}">
+                </div>
+                <div class="col-md-6">
+                    <label for="departmentId" class="form-label">Dział</label>
+                    <select class="form-select" id="departmentId" name="departmentId">
+                        <option value="">Wszystkie działy</option>
+                        <option th:each="dept : ${departments}"
+                                th:value="${dept.id}"
+                                th:text="${dept.name}"
+                                th:selected="${dept.id == departmentId}">
+                        </option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="positionId" class="form-label">Stanowisko</label>
+                    <select class="form-select" id="positionId" name="positionId">
+                        <option value="">Wszystkie stanowiska</option>
+                        <option th:each="pos : ${positions}"
+                                th:value="${pos.id}"
+                                th:text="${pos.name}"
+                                th:selected="${pos.id == positionId}">
+                        </option>
+                    </select>
+                </div>
+                <div class="col-12 text-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search"></i> Szukaj
+                    </button>
+                    <a th:href="@{/warehouse/employees}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Wyczyść filtry
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+            <tr>
+                <th>Numer pracownika</th>
+                <th>Imię</th>
+                <th>Nazwisko</th>
+                <th>Dział</th>
+                <th>Stanowisko</th>
+                <th>Status</th>
+                <th>Akcje</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="employee : ${employees}" th:class="${!employee.active} ? 'table-secondary' : ''">
+                <td>
+                    <code th:text="${employee.employeeNumber}">XX00000</code>
+                </td>
+                <td th:text="${employee.firstName}">Imię</td>
+                <td th:text="${employee.lastName}">Nazwisko</td>
+                <td th:text="${employee.departmentName}">Dział</td>
+                <td th:text="${employee.positionName}">Stanowisko</td>
+                <td>
+                    <span th:if="${employee.active}" class="badge bg-success">Aktywny</span>
+                    <span th:unless="${employee.active}" class="badge bg-secondary">Nieaktywny</span>
+                </td>
+                <td>
+                    <a th:href="@{/warehouse/employees/{id}(id=${employee.id})}" class="btn btn-sm btn-primary">
+                        <i class="bi bi-eye"></i> Szczegóły
+                    </a>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(employees)}">
+                <td colspan="7" class="text-center">Brak pracowników</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div th:replace="components :: footer"></div>
+<div th:replace="components :: scripts"></div>
+</body>
+</html>
