@@ -4,21 +4,21 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationAdapter;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceContext;
 import pl.programodawca.drivergear.dto.ClothingAssignmentDTO;
 import pl.programodawca.drivergear.dto.ClothingCompensationDTO;
 import pl.programodawca.drivergear.dto.EmployeeDTO;
 import pl.programodawca.drivergear.exception.BusinessException;
 import pl.programodawca.drivergear.exception.EntityNotFoundException;
 import pl.programodawca.drivergear.exception.ResourceNotFoundException;
-import pl.programodawca.drivergear.model.ClothingAllowance;
-import pl.programodawca.drivergear.model.ClothingAssignment;
-import pl.programodawca.drivergear.model.ClothingCompensation;
-import pl.programodawca.drivergear.model.ClothingType;
-import pl.programodawca.drivergear.model.CompensationStatus;
-import pl.programodawca.drivergear.model.Employee;
-import pl.programodawca.drivergear.model.Position;
-import pl.programodawca.drivergear.model.PositionClothingAllowance;
+import pl.programodawca.drivergear.model.*;
 import pl.programodawca.drivergear.repository.*;
 import pl.programodawca.drivergear.service.ClothingAssignmentService;
 import pl.programodawca.drivergear.service.ClothingCompensationService;
@@ -38,6 +38,9 @@ public class ClothingCompensationServiceImpl implements ClothingCompensationServ
     private final ClothingAllowanceRepository allowanceRepository;
     private final ClothingAssignmentRepository assignmentRepository;
     private final ApplicationContext applicationContext;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     public ClothingCompensationServiceImpl(
             ClothingCompensationRepository compensationRepository,
@@ -205,8 +208,19 @@ public class ClothingCompensationServiceImpl implements ClothingCompensationServ
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.READ_COMMITTED, timeout = 30)
     public Map<String, Object> markAllPendingAsPaid(Long employeeId) {
+        // Register transaction synchronization to ensure changes are visible
+        TransactionSynchronizationManager.registerSynchronization(
+            new TransactionSynchronizationAdapter() {
+                @Override
+                public void afterCommit() {
+                    // This code runs after the transaction is committed
+                    System.out.println("[DEBUG_LOG] Transaction committed for markAllPendingAsPaid");
+                }
+            }
+        );
+
         List<ClothingCompensation> pendingCompensations = compensationRepository.findByEmployeeIdAndStatus(employeeId, CompensationStatus.PENDING);
 
         if (pendingCompensations.isEmpty()) {
@@ -224,6 +238,12 @@ public class ClothingCompensationServiceImpl implements ClothingCompensationServ
             compensation.setStatus(CompensationStatus.PAID);
             compensation.setPaymentDate(now);
             compensationRepository.save(compensation);
+
+            // Mark the associated assignment as compensated
+            if (compensation.getClothingAssignment() != null) {
+                getClothingAssignmentService().markAsCompensated(compensation.getClothingAssignment().getId());
+            }
+
             totalAmount = totalAmount.add(compensation.getAmount());
             count++;
         }
@@ -235,6 +255,13 @@ public class ClothingCompensationServiceImpl implements ClothingCompensationServ
         System.out.println("Marked " + count + " compensations as paid for employee ID " + employeeId + 
                 " with total amount " + totalAmount);
 
+        // Force flush and clear the persistence context to ensure changes are visible
+        if (entityManager != null) {
+            entityManager.flush();
+            entityManager.clear();
+            System.out.println("[DEBUG_LOG] Flushed and cleared persistence context");
+        }
+
         return Map.of(
             "count", count,
             "totalAmount", totalAmount
@@ -244,45 +271,46 @@ public class ClothingCompensationServiceImpl implements ClothingCompensationServ
     @Override
     @Transactional
     public int createCompensationsForEligibleAssignments() {
-        // Get all assignments eligible for compensation
-        List<ClothingAssignmentDTO> eligibleAssignments = getClothingAssignmentService().getAssignmentsEligibleForCompensation();
+        LocalDate today = LocalDate.now();
+
+        // Pobierz wszystkie przeterminowane i niekompensowane przydziały
+        List<ClothingAssignment> assignments = assignmentRepository.findAll().stream()
+                .filter(a -> a.getExpiryDate() != null)
+                .filter(a -> a.getExpiryDate().isBefore(today))
+                .filter(a -> a.getStatus() != AssignmentStatus.COMPENSATED)
+                .filter(a -> !Boolean.TRUE.equals(a.getIssuedToEmployee()))
+                .filter(a -> Boolean.TRUE.equals(a.getEligibleForCompensation()))
+                .collect(Collectors.toList());
 
         int createdCount = 0;
 
-        for (ClothingAssignmentDTO assignmentDTO : eligibleAssignments) {
+        for (ClothingAssignment assignment : assignments) {
             try {
-                // Get the assignment entity
-                ClothingAssignment assignment = assignmentRepository.findById(assignmentDTO.getId())
-                        .orElseThrow(() -> new EntityNotFoundException("Assignment not found"));
-
-                // Create a new compensation
+                // Utwórz kompensację
                 ClothingCompensation compensation = new ClothingCompensation();
                 compensation.setEmployee(assignment.getEmployee());
                 compensation.setClothingAssignment(assignment);
 
-                // Calculate compensation amount based on the position clothing allowance
+                // Oblicz kwotę – z allowance przypisanego do przydziału
                 BigDecimal compensationAmount = assignment.getPositionClothingAllowance().getClothingItems().stream()
+                        .filter(item -> item.getClothingType().getId().equals(assignment.getClothingType().getId()))
                         .map(item -> item.getCompensationAmount())
                         .reduce(BigDecimal.ZERO, BigDecimal::add);
 
                 compensation.setAmount(compensationAmount);
-
-                // Set period start and end dates from the assignment
                 compensation.setPeriodStart(assignment.getAssignmentDate());
                 compensation.setPeriodEnd(assignment.getExpiryDate());
                 compensation.setStatus(CompensationStatus.PENDING);
 
-                // Save the compensation
                 compensationRepository.save(compensation);
 
-                // Mark the assignment as compensated
-                getClothingAssignmentService().markAsCompensated(assignment.getId());
+                // Oznacz przydział jako COMPENSATED
+                assignment.setStatus(AssignmentStatus.COMPENSATED);
+                assignmentRepository.save(assignment);
 
                 createdCount++;
             } catch (Exception e) {
-                // Log the error but continue processing other assignments
-                // In a real application, you might want to use a logger instead of System.err
-                System.err.println("Error creating compensation for assignment " + assignmentDTO.getId() + ": " + e.getMessage());
+                System.err.println("Error creating compensation for assignment ID=" + assignment.getId() + ": " + e.getMessage());
             }
         }
 

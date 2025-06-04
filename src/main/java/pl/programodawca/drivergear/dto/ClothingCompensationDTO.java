@@ -37,6 +37,8 @@ public class ClothingCompensationDTO {
     private CompensationStatus status;
     private LocalDate paymentDate;
     private String notes;
+    private Integer quantity;
+    private BigDecimal compensationAmount;
 
     public static ClothingCompensationDTO fromEntity(ClothingCompensation compensation) {
         if (compensation == null) {
@@ -48,9 +50,19 @@ public class ClothingCompensationDTO {
                 .employeeId(compensation.getEmployee().getId())
                 .employeeName(compensation.getEmployee().getFullName())
                 .clothingAssignmentId(compensation.getClothingAssignment().getId())
-                .clothingTypeName(compensation.getClothingAssignment().getPositionClothingAllowance().getClothingItems().isEmpty() ? 
-                        "Brak typu odzieży" : 
-                        compensation.getClothingAssignment().getPositionClothingAllowance().getClothingItems().iterator().next().getClothingType().getName())
+                .quantity(compensation.getClothingAssignment().getQuantity())
+                .clothingTypeName(
+                        compensation.getClothingAssignment().getClothingType().getName()
+                )
+                .compensationAmount(
+                        compensation.getClothingAssignment()
+                                .getPositionClothingAllowance()
+                                .getClothingItems()
+                                .stream()
+                                .findFirst()
+                                .map(item -> item.getClothingType().getCompensationValue())
+                                .orElse(BigDecimal.ZERO)
+                )
                 .positionName(compensation.getClothingAssignment().getPositionClothingAllowance().getPosition().getName())
                 .departmentName(compensation.getClothingAssignment().getPositionClothingAllowance().getDepartment().getName())
                 .amount(compensation.getAmount())

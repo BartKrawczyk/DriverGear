@@ -17,6 +17,7 @@ import pl.programodawca.drivergear.dto.EmployeeDTO;
 import pl.programodawca.drivergear.dto.EmployeeEntitlementDTO;
 import pl.programodawca.drivergear.exception.ResourceNotFoundException;
 import pl.programodawca.drivergear.model.AssignmentStatus;
+import pl.programodawca.drivergear.model.CompensationStatus;
 import pl.programodawca.drivergear.model.ClothingType;
 import pl.programodawca.drivergear.model.WarehouseInventory;
 import pl.programodawca.drivergear.repository.ClothingTypeRepository;
@@ -149,6 +150,19 @@ public class WarehouseEmployeeController {
                 clothingCompensationService.calculateTotalPendingCompensations(id);
             model.addAttribute("totalPendingCompensation", totalPendingCompensation);
 
+            // Get employee compensation history - filter for PAID compensations
+            List<ClothingCompensationDTO> paidCompensations = clothingCompensationService.getEmployeeCompensationHistory(id)
+                .stream()
+                .filter(c -> c.getStatus() == CompensationStatus.PAID)
+                .toList();
+            model.addAttribute("paidCompensations", paidCompensations);
+
+            // Calculate total paid compensation amount
+            BigDecimal totalPaidCompensation = paidCompensations.stream()
+                .map(ClothingCompensationDTO::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+            model.addAttribute("totalPaidCompensation", totalPaidCompensation);
+
             return "warehouse/employees/employee-details";
         } catch (ResourceNotFoundException e) {
             logger.error("Employee not found with ID: {}", id, e);
@@ -195,9 +209,18 @@ public class WarehouseEmployeeController {
             logger.info("Issued clothing item: {} to employee: {}", 
                 updatedAssignment.getClothingTypeName(), updatedAssignment.getEmployeeName());
 
+            // Explicitly refresh the entitlement data to ensure the view shows the latest data
+            // This is important to make sure the expired quantity is updated correctly
+            EmployeeEntitlementDTO refreshedEntitlementData = employeeEntitlementService.calculateCurrentEntitlement(employeeId);
+            logger.info("Refreshed entitlement data for employee ID {}: {} expired items, {} pending items", 
+                employeeId, 
+                refreshedEntitlementData.getClothingEntitlements().stream().mapToInt(e -> e.getExpiredQuantity()).sum(),
+                refreshedEntitlementData.getClothingEntitlements().stream().mapToInt(e -> e.getPendingQuantity()).sum());
+
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "Clothing item issued successfully");
+            response.put("refreshRequired", true); // Signal to the frontend that it should refresh the page
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             logger.error("Error issuing clothing", e);
@@ -272,10 +295,19 @@ public class WarehouseEmployeeController {
 
             logger.info("Processed compensation of {} for employee: {}", amount, employee.getFullName());
 
+            // Explicitly refresh the entitlement data to ensure the view shows the latest data
+            // This is important to make sure the expired quantity is updated correctly
+            EmployeeEntitlementDTO refreshedEntitlementData = employeeEntitlementService.calculateCurrentEntitlement(employeeId);
+            logger.info("Refreshed entitlement data for employee ID {}: {} expired items, {} pending items", 
+                employeeId, 
+                refreshedEntitlementData.getClothingEntitlements().stream().mapToInt(e -> e.getExpiredQuantity()).sum(),
+                refreshedEntitlementData.getClothingEntitlements().stream().mapToInt(e -> e.getPendingQuantity()).sum());
+
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", message);
             response.put("amount", amount);
+            response.put("refreshRequired", true); // Signal to the frontend that it should refresh the page
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             logger.error("Error processing compensation payment", e);

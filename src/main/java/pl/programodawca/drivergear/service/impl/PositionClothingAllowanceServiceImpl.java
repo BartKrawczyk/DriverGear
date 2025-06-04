@@ -148,7 +148,7 @@ public class PositionClothingAllowanceServiceImpl implements PositionClothingAll
         }
 
         // Find all clothing items with this clothing type
-        List<PositionClothingItem> items = positionClothingItemRepository.findByClothingTypeId(clothingTypeId);
+        List<PositionClothingItem> items = positionClothingItemRepository.findByClothingType_Id(clothingTypeId);
 
         // Get the unique allowances
         Set<PositionClothingAllowance> allowances = items.stream()

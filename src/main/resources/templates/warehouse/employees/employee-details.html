@@ -4,6 +4,8 @@
     <title>Szczegóły pracownika</title>
 </head>
 <body class="d-flex flex-column min-vh-100">
+<!-- Hidden input to store employee ID -->
+<input type="hidden" id="employeeIdInput" th:value="${employee.id}">
 <nav th:replace="components :: navigation"></nav>
 
 <div class="container">
@@ -57,7 +59,7 @@
                             <th>Standardowa ilość</th>
                             <th>Wydana ilość</th>
                             <th>Oczekująca ilość</th>
-                            <th>Przeterminowana ilość</th>
+                            <th>Ekwiwalent do wypłaty</th>
                             <th>Ostatnio wydano</th>
                             <th>Następne odnowienie</th>
                             <th>Akcje</th>
@@ -69,7 +71,7 @@
                             <td th:text="${entitlement.standardQuantity}">2</td>
                             <td th:text="${entitlement.issuedQuantity}">1</td>
                             <td th:text="${entitlement.pendingQuantity}">1</td>
-                            <td th:text="${entitlement.expiredQuantity}">0</td>
+                            <td th:text="${entitlement.eligibleForCompensation == true ? #numbers.formatDecimal(entitlement.compensationValue, 1, 2) + ' zł' : '-'}">40.00 zł</td>
                             <td th:text="${entitlement.lastIssuedDate != null ? #temporals.format(entitlement.lastIssuedDate, 'dd.MM.yyyy') : '-'}">01.01.2023</td>
                             <td th:text="${entitlement.nextRenewalDate != null ? #temporals.format(entitlement.nextRenewalDate, 'dd.MM.yyyy') : '-'}">01.01.2024</td>
                             <td th:with="stockQty=${stockQuantities.get(entitlement.clothingTypeId)}">
@@ -81,7 +83,7 @@
                                     <i class="bi bi-box-arrow-right"></i> 📦 Wydaj
                                 </button>
 
-                                <!-- Compensate button: Show if eligibleForCompensation == true -->
+                                <!--/*
                                 <button th:if="${entitlement.eligibleForCompensation == true}" 
                                         class="btn btn-sm btn-warning compensate-btn mb-1" 
                                         th:data-id="${entitlement.clothingTypeId}" 
@@ -89,7 +91,7 @@
                                         th:data-amount="${#numbers.formatDecimal(entitlement.compensationValue, 1, 2)}">
                                     <i class="bi bi-cash-coin"></i> 💰 Kompensuj
                                 </button>
-
+                                */-->
                                 <!-- Out of Stock button: Show if issuedQuantity < standardQuantity AND stock = 0 -->
                                 <button th:if="${entitlement.issuedQuantity < entitlement.standardQuantity && stockQty != null && stockQty == 0}" 
                                         class="btn btn-sm btn-danger mb-1" 
@@ -114,15 +116,18 @@
     </div>
 
     <!-- Compensation Information -->
-    <div class="card mb-4" th:if="${totalPendingCompensation > 0 || entitlementData.hasExpiredAssignments}">
+    <div class="card mb-4">
         <div class="card-header bg-warning">
             <h5 class="mb-0">Informacje o ekwiwalencie</h5>
         </div>
         <div class="card-body">
-            <div class="row">
+            <div class="row mb-3">
                 <div class="col-md-8">
                     <p><strong>Całkowity ekwiwalent do wypłaty:</strong> 
                         <span th:text="${#numbers.formatDecimal(totalPendingCompensation, 1, 2) + ' zł'}">0.00 zł</span>
+                    </p>
+                    <p><strong>Wypłacony ekwiwalent:</strong> 
+                        <span th:text="${#numbers.formatDecimal(totalPaidCompensation, 1, 2) + ' zł'}">0.00 zł</span>
                     </p>
                     <p th:if="${entitlementData.hasExpiredAssignments}">
                         <strong>Uwaga:</strong> Pracownik posiada wygasłe przydziały odzieży, które nie zostały wydane.
@@ -136,6 +141,25 @@
                         <i class="bi bi-cash-coin"></i> Wypłać ekwiwalent
                     </button>
                 </div>
+            </div>
+
+            <!-- Paid Compensations Section -->
+            <div class="mt-4">
+                <h6 class="mb-3">💰 Wypłacone ekwiwalenty:</h6>
+
+                <div th:if="${#lists.isEmpty(paidCompensations)}" class="alert alert-info">
+                    Brak wypłaconych ekwiwalentów dla tego pracownika.
+                </div>
+
+                <ul th:if="${!#lists.isEmpty(paidCompensations)}" class="list-group">
+                    <li th:each="compensation : ${paidCompensations}" class="list-group-item">
+                        🧥 <strong th:text="${compensation.clothingTypeName}">Buty ochronne</strong> – 
+                        <span th:text="${compensation.quantity != null ? compensation.quantity : '-'}">2</span> szt. –
+                        wygasły: <span th:text="${#temporals.format(compensation.periodEnd, 'dd.MM.yyyy')}">20.11.2023</span> – 
+                        wypłacono: <span th:text="${compensation.paymentDate != null ? #temporals.format(compensation.paymentDate, 'dd.MM.yyyy') : '-'}">04.06.2025</span> – 
+                        kwota: <span th:text="${#numbers.formatDecimal(compensation.amount, 1, 2) + ' zł'}">60.00 zł</span>
+                    </li>
+                </ul>
             </div>
         </div>
     </div>
@@ -184,13 +208,8 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Get employee ID from the pay-compensation-btn
-        const payButton = document.querySelector('.pay-compensation-btn');
-        let employeeId = null;
-
-        if (payButton) {
-            employeeId = payButton.getAttribute('data-id');
-        }
+        // Get employee ID from the hidden input (always available)
+        let employeeId = document.getElementById('employeeIdInput').value;
 
         // Issue Clothing Button Click
         const issueButtons = document.querySelectorAll('.issue-clothing-btn');
@@ -218,8 +237,15 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // Reload the page to show updated status
-                        location.reload();
+                        // Check if a hard refresh is required
+                        if (data.refreshRequired) {
+                            console.log('Hard refresh required, clearing cache and reloading page');
+                            // Force a hard reload, bypassing the cache
+                            location.reload(true);
+                        } else {
+                            // Normal reload
+                            location.reload();
+                        }
                     } else {
                         console.error('Error:', data.message);
                         alert('Błąd: ' + data.message);
@@ -253,6 +279,7 @@
 
         // Pay Compensation Button Click (for the total compensation button)
         const payModal = new bootstrap.Modal(document.getElementById('payCompensationModal'));
+        const payButton = document.querySelector('.pay-compensation-btn');
 
         if (payButton) {
             payButton.addEventListener('click', function() {
@@ -285,8 +312,15 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // Reload the page to show updated status
-                        location.reload();
+                        // Check if a hard refresh is required
+                        if (data.refreshRequired) {
+                            console.log('Hard refresh required, clearing cache and reloading page');
+                            // Force a hard reload, bypassing the cache
+                            location.reload(true);
+                        } else {
+                            // Normal reload
+                            location.reload();
+                        }
                     } else {
                         console.error('Error:', data.message);
                         alert('Błąd: ' + data.message);

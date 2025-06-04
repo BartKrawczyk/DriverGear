@@ -2,6 +2,8 @@ package pl.programodawca.drivergear.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import pl.programodawca.drivergear.dto.ClothingAssignmentDTO;
 import pl.programodawca.drivergear.dto.ClothingTypeEntitlementDTO;
@@ -31,7 +33,7 @@ import java.util.stream.Collectors;
  * current assignments, and compensation eligibility.
  */
 @Service
-@Transactional(readOnly = true)
+@Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
 @RequiredArgsConstructor
 public class EmployeeEntitlementServiceImpl implements EmployeeEntitlementService {
 
@@ -41,6 +43,7 @@ public class EmployeeEntitlementServiceImpl implements EmployeeEntitlementServic
     private final ClothingCompensationService clothingCompensationService;
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.READ_COMMITTED)
     public EmployeeEntitlementDTO calculateCurrentEntitlement(Long employeeId) {
         // Retrieve employee data
         EmployeeDTO employee = employeeService.findById(employeeId);
@@ -227,13 +230,33 @@ public class EmployeeEntitlementServiceImpl implements EmployeeEntitlementServic
      * @return The quantity of expired assignments
      */
     private int calculateExpiredQuantity(List<ClothingAssignmentDTO> assignments, LocalDate today) {
-        return assignments.stream()
+        // Debug logging to show which assignments are being counted
+        System.out.println("[DEBUG_LOG] Calculating expired quantity for " + assignments.size() + " assignments");
+
+        List<ClothingAssignmentDTO> expiredAssignments = assignments.stream()
             .filter(a -> a.getExpiryDate() != null 
                 && a.getExpiryDate().isBefore(today)
                 && a.getStatus() != AssignmentStatus.COMPENSATED
-                && !Boolean.TRUE.equals(a.getIssuedToEmployee()))
+                && !Boolean.TRUE.equals(a.getIssuedToEmployee())
+                && Boolean.TRUE.equals(a.getEligibleForCompensation()))
+            .collect(Collectors.toList());
+
+        // Log the expired assignments
+        expiredAssignments.forEach(a -> 
+            System.out.println("[DEBUG_LOG] Expired assignment: ID=" + a.getId() + 
+                ", Type=" + a.getClothingTypeName() + 
+                ", Status=" + a.getStatus() + 
+                ", EligibleForCompensation=" + a.getEligibleForCompensation() +
+                ", ExpiryDate=" + a.getExpiryDate() +
+                ", Quantity=" + a.getQuantity()));
+
+        int total = expiredAssignments.stream()
             .mapToInt(ClothingAssignmentDTO::getQuantity)
             .sum();
+
+        System.out.println("[DEBUG_LOG] Total expired quantity: " + total);
+
+        return total;
     }
 
     /**

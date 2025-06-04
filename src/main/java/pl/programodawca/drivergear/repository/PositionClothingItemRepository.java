@@ -10,7 +10,7 @@ import java.util.List;
 public interface PositionClothingItemRepository extends JpaRepository<PositionClothingItem, Long> {
     List<PositionClothingItem> findByPositionClothingAllowanceId(Long positionClothingAllowanceId);
     
-    List<PositionClothingItem> findByClothingTypeId(Long clothingTypeId);
+    List<PositionClothingItem> findByClothingType_Id(Long clothingTypeId);
     
     List<PositionClothingItem> findByActiveTrue();
     
