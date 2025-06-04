@@ -1,7 +1,10 @@
 package pl.programodawca.drivergear.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import pl.programodawca.drivergear.model.ClothingCompensation;
 import pl.programodawca.drivergear.model.CompensationStatus;
@@ -31,4 +34,23 @@ public interface ClothingCompensationRepository extends JpaRepository<ClothingCo
 
     @Query("SELECT c FROM ClothingCompensation c WHERE c.clothingAssignment.positionClothingAllowance.position.id = :positionId")
     List<ClothingCompensation> findByPositionId(Long positionId);
+
+    // Find all paid compensations with pagination and filtering
+    @Query("SELECT c FROM ClothingCompensation c " +
+           "WHERE c.status = pl.programodawca.drivergear.model.CompensationStatus.PAID " +
+           "AND (:firstName IS NULL OR LOWER(c.employee.firstName) LIKE LOWER(CONCAT('%', :firstName, '%'))) " +
+           "AND (:lastName IS NULL OR LOWER(c.employee.lastName) LIKE LOWER(CONCAT('%', :lastName, '%'))) " +
+           "AND (:employeeNumber IS NULL OR c.employee.employeeNumber = :employeeNumber) " +
+           "AND (:clothingTypeId IS NULL OR c.clothingAssignment.clothingType.id = :clothingTypeId) " +
+           "AND (:startDate IS NULL OR c.paymentDate >= :startDate) " +
+           "AND (:endDate IS NULL OR c.paymentDate <= :endDate) " +
+           "ORDER BY c.paymentDate DESC")
+    Page<ClothingCompensation> findPaidCompensationHistory(
+            @Param("firstName") String firstName,
+            @Param("lastName") String lastName,
+            @Param("employeeNumber") String employeeNumber,
+            @Param("clothingTypeId") Long clothingTypeId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            Pageable pageable);
 }

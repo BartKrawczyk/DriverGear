@@ -66,6 +66,32 @@
                 </div>
             </a>
         </div>
+
+        <!-- Historia wydań odzieży -->
+        <div class="col-md-3 text-center mb-4">
+            <a th:href="@{/warehouse/history/issued-clothing}" class="text-decoration-none">
+                <div class="card h-100 shadow-sm hover-card metallic-card">
+                    <div class="card-body">
+                        <i class="bi bi-clock-history fs-1 mb-3"></i>
+                        <h3 class="card-title">Historia wydań</h3>
+                        <p class="card-text">Przeglądaj historię wydań odzieży</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Historia wypłat ekwiwalentów -->
+        <div class="col-md-3 text-center mb-4">
+            <a th:href="@{/warehouse/history/paid-compensations}" class="text-decoration-none">
+                <div class="card h-100 shadow-sm hover-card metallic-card">
+                    <div class="card-body">
+                        <i class="bi bi-receipt fs-1 mb-3"></i>
+                        <h3 class="card-title">Historia ekwiwalentów</h3>
+                        <p class="card-text">Przeglądaj historię wypłat ekwiwalentów</p>
+                    </div>
+                </div>
+            </a>
+        </div>
     </div>
 
     <!-- Stock level overview integrated here -->

@@ -41,6 +41,7 @@ public class ClothingAssignmentDTO {
     private Boolean issuedToEmployee;
     private LocalDate issuedDate;
     private Boolean eligibleForCompensation;
+    private String employeeNumber;
     private String notes;
 
     public static ClothingAssignmentDTO fromEntity(ClothingAssignment assignment) {
@@ -71,6 +72,7 @@ public class ClothingAssignmentDTO {
                 .issuedToEmployee(assignment.getIssuedToEmployee())
                 .issuedDate(assignment.getIssuedDate())
                 .eligibleForCompensation(assignment.getEligibleForCompensation())
+                .employeeNumber(assignment.getEmployee().getEmployeeNumber())
                 .notes(assignment.getNotes())
                 .build();
     }
