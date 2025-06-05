@@ -24,7 +24,7 @@ public class ClothingEntitlement {
     private LocalDate eligibleTo;
 
     @Column(name = "used_quantity", columnDefinition = "integer default 0")
-    private int usedQuantity = 0;
+    private Integer usedQuantity = 0;
 
     // Getters and setters
     public Long getId() {

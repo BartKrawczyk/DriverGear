@@ -68,6 +68,10 @@
                class="btn btn-sm btn-warning">
               <i class="bi bi-pencil"></i> Edytuj
             </a>
+            <a th:href="@{/administration/employees/{id}/clothing-overview(id=${employee.id})}"
+               class="btn btn-sm btn-info">
+              <i class="bi bi-bag"></i> Odzież
+            </a>
             <form th:action="@{/administration/employees/{id}(id=${employee.id})}"
                   method="post" class="d-inline"
                   onsubmit="return confirm('Czy na pewno chcesz usunąć tego pracownika?')">

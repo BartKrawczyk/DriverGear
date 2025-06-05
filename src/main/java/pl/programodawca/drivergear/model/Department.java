@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
+@Table(name = "departments")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -30,9 +31,10 @@ public class Department {
     @OneToMany(mappedBy = "department")
     private Set<Position> positions = new HashSet<>();
 
+    @OneToMany(mappedBy = "department")
+    private Set<PositionClothingAllowance> clothingAllowances = new HashSet<>();
+
     @Column(nullable = false)
     private boolean active = true;
 
 }
-
-

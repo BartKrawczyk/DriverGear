@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="components :: site-head">
+  <title th:text="${isNew} ? 'Dodaj nowego pracownika' : 'Edycja pracownika'">Pracownik</title>
+  <meta name="_csrf" th:content="${_csrf.token}"/>
+  <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+</head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="components :: navigation"></nav>
+
+<div class="container">
+  <div th:replace="components :: messages"></div>
+
+  <h1 class="mb-4" th:text="${title}">Pracownik</h1>
+
+  <form th:action="@{${isNew ? '/administration/employees/new' : '/administration/employees/' + employeeDTO.id + '/edit'}}"
+        method="post"
+        th:object="${employeeDTO}"
+        class="needs-validation"
+        novalidate
+        id="employeeForm">
+
+    <div class="row">
+      <div class="col-md-6">
+        <!-- Dane osobowe -->
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="mb-0">Dane osobowe</h5>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label for="firstName" class="form-label">Imię:</label>
+              <input type="text"
+                     class="form-control"
+                     id="firstName"
+                     th:field="*{firstName}"
+                     th:classappend="${#fields.hasErrors('firstName')} ? 'is-invalid'"
+                     required>
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('firstName')}"
+                   th:errors="*{firstName}">Błąd imienia</div>
+            </div>
+
+            <div class="mb-3">
+              <label for="lastName" class="form-label">Nazwisko:</label>
+              <input type="text"
+                     class="form-control"
+                     id="lastName"
+                     th:field="*{lastName}"
+                     th:classappend="${#fields.hasErrors('lastName')} ? 'is-invalid'"
+                     required>
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('lastName')}"
+                   th:errors="*{lastName}">Błąd nazwiska</div>
+            </div>
+
+            <div class="mb-3">
+              <label for="gender" class="form-label">Płeć:</label>
+              <select class="form-select"
+                      id="gender"
+                      th:field="*{gender}"
+                      th:classappend="${#fields.hasErrors('gender')} ? 'is-invalid'">
+                <option value="">-- Wybierz płeć --</option>
+                <option th:each="genderOption : ${genders}"
+                        th:value="${genderOption}"
+                        th:text="${genderOption.displayName}">
+                </option>
+              </select>
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('gender')}"
+                   th:errors="*{gender}">Błąd płci</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dane zatrudnienia -->
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="mb-0">Dane zatrudnienia</h5>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label for="employeeNumber" class="form-label">Numer pracownika:</label>
+              <input type="text"
+                     class="form-control"
+                     id="employeeNumber"
+                     th:field="*{employeeNumber}"
+                     th:classappend="${#fields.hasErrors('employeeNumber')} ? 'is-invalid'"
+                     placeholder="XX00000"
+                     required>
+              <div class="form-text">Format: dwie wielkie litery i pięć cyfr (np. AB12345)</div>
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('employeeNumber')}"
+                   th:errors="*{employeeNumber}">Błąd numeru pracownika</div>
+            </div>
+
+            <div class="mb-3">
+              <label for="hireDate" class="form-label">Data zatrudnienia:</label>
+              <input type="date"
+                     class="form-control"
+                     id="hireDate"
+                     th:field="*{hireDate}"
+                     th:classappend="${#fields.hasErrors('hireDate')} ? 'is-invalid'"
+                     required>
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('hireDate')}"
+                   th:errors="*{hireDate}">Błąd daty zatrudnienia</div>
+            </div>
+
+            <div class="mb-3">
+              <label for="position" class="form-label">Stanowisko:</label>
+              <div class="input-group">
+                <select class="form-select"
+                        id="position"
+                        th:field="*{positionId}"
+                        th:classappend="${#fields.hasErrors('positionId')} ? 'is-invalid'"
+                        required>
+                  <option value="">-- Wybierz stanowisko --</option>
+                  <option th:each="position : ${positions}"
+                          th:value="${position.id}"
+                          th:text="${position.name}"
+                          th:selected="${employeeDTO.positionId == position.id}">
+                  </option>
+                </select>
+                <button type="button" class="btn btn-outline-secondary" id="addPositionBtn" data-bs-toggle="modal" data-bs-target="#addPositionModal">
+                  <i class="bi bi-plus-circle"></i> Nowy
+                </button>
+              </div>
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('positionId')}"
+                   th:errors="*{positionId}">Błąd stanowiska</div>
+            </div>
+
+            <div class="mb-3">
+              <label for="department" class="form-label">Dział:</label>
+              <div class="input-group">
+                <select class="form-select"
+                        id="department"
+                        th:field="*{departmentId}"
+                        th:classappend="${#fields.hasErrors('departmentId')} ? 'is-invalid'"
+                        required>
+                  <option value="">-- Wybierz dział --</option>
+                  <option th:each="department : ${departments}"
+                          th:value="${department.id}"
+                          th:text="${department.name}">
+                  </option>
+                </select>
+                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addDepartmentModal">
+                  <i class="bi bi-plus-circle"></i> Nowy
+                </button>
+              </div>
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('departmentId')}"
+                   th:errors="*{departmentId}">Błąd działu</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <!-- Dane kontaktowe -->
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="mb-0">Dane kontaktowe</h5>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label for="phoneNumber" class="form-label">Numer telefonu:</label>
+              <input type="tel"
+                     class="form-control"
+                     id="phoneNumber"
+                     th:field="*{phoneNumber}"
+                     th:classappend="${#fields.hasErrors('phoneNumber')} ? 'is-invalid'"
+                     placeholder="+48123456789">
+              <div class="form-text">Format: +48123456789 lub 123456789</div>
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('phoneNumber')}"
+                   th:errors="*{phoneNumber}">Błąd numeru telefonu</div>
+            </div>
+
+            <div class="mb-3">
+              <label for="email" class="form-label">Adres email:</label>
+              <input type="email"
+                     class="form-control"
+                     id="email"
+                     th:field="*{email}"
+                     th:classappend="${#fields.hasErrors('email')} ? 'is-invalid'"
+                     placeholder="pracownik@firma.pl">
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}"
+                   th:errors="*{email}">Błąd adresu email</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status -->
+        <div class="card mb-4" th:if="${!isNew}">
+          <div class="card-header">
+            <h5 class="mb-0">Status</h5>
+          </div>
+          <div class="card-body">
+            <div class="mb-3 form-check">
+              <input type="checkbox"
+                     class="form-check-input"
+                     id="active"
+                     th:field="*{active}"
+                     th:classappend="${#fields.hasErrors('active')} ? 'is-invalid'">
+              <label class="form-check-label" for="active">Pracownik aktywny</label>
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('active')}"
+                   th:errors="*{active}">Błąd statusu</div>
+            </div>
+
+            <div class="mb-3" th:if="${!employeeDTO.active}">
+              <label for="deactivationDate" class="form-label">Data dezaktywacji:</label>
+              <input type="date"
+                     class="form-control"
+                     id="deactivationDate"
+                     th:field="*{deactivationDate}"
+                     th:classappend="${#fields.hasErrors('deactivationDate')} ? 'is-invalid'">
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('deactivationDate')}"
+                   th:errors="*{deactivationDate}">Błąd daty dezaktywacji</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-save"></i> Zapisz
+      </button>
+      <a th:href="@{/administration/employees}" class="btn btn-secondary">
+        <i class="bi bi-x-circle"></i> Anuluj
+      </a>
+    </div>
+  </form>
+</div>
+
+<div th:replace="components :: footer"></div>
+<div th:replace="components :: scripts"></div>
+
+<script>
+  // Show/hide deactivation date field based on active status
+  document.addEventListener('DOMContentLoaded', function() {
+    const activeCheckbox = document.getElementById('active');
+    const deactivationDateElement = document.getElementById('deactivationDate');
+
+    if (activeCheckbox && deactivationDateElement) {
+      const deactivationDateContainer = deactivationDateElement.closest('.mb-3');
+
+      function toggleDeactivationDate() {
+        if (deactivationDateContainer) {
+          deactivationDateContainer.style.display = activeCheckbox.checked ? 'none' : 'block';
+        }
+      }
+
+      // Initial state
+      toggleDeactivationDate();
+
+      // On change
+      activeCheckbox.addEventListener('change', toggleDeactivationDate);
+    }
+
+    // Dynamic filtering of positions based on selected department
+    const departmentSelect = document.getElementById('department');
+    const positionSelect = document.getElementById('position');
+
+    if (departmentSelect && positionSelect) {
+      // Store the initial position options
+      const initialPositionOptions = Array.from(positionSelect.options);
+
+      // Function to update positions based on selected department
+      function updatePositions() {
+        const departmentId = departmentSelect.value;
+
+        // Clear current options except the first one (placeholder)
+        while (positionSelect.options.length > 1) {
+          positionSelect.remove(1);
+        }
+
+        if (departmentId) {
+          // Enable position dropdown when department is selected
+          positionSelect.disabled = false;
+
+          // Fetch positions for the selected department
+          fetch(`/administration/employees/positions/by-department/${departmentId}`)
+            .then(response => response.json())
+            .then(positions => {
+              // Add new options
+              positions.forEach(position => {
+                const option = new Option(position.name, position.id);
+                positionSelect.add(option);
+              });
+            })
+            .catch(error => console.error('Error fetching positions:', error));
+        } else {
+          // Disable position dropdown when no department is selected
+          positionSelect.disabled = true;
+
+          // If no department is selected, restore all positions
+          initialPositionOptions.forEach((option, index) => {
+            if (index > 0) { // Skip the first option (placeholder)
+              positionSelect.add(option.cloneNode(true));
+            }
+          });
+        }
+      }
+
+      // Update positions when department changes
+      departmentSelect.addEventListener('change', updatePositions);
+
+      // Initial state: enable position dropdown if department is already selected
+      if (departmentSelect.value) {
+        positionSelect.disabled = false;
+        // Don't call updatePositions() here as it would clear existing options
+        // which would remove the pre-selected position
+      } else {
+        positionSelect.disabled = true;
+      }
+    }
+  });
+</script>
+
+<!-- Modal for adding a new department -->
+<div class="modal fade" id="addDepartmentModal" tabindex="-1" aria-labelledby="addDepartmentModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addDepartmentModalLabel">Dodaj nowy dział</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="newDepartmentForm">
+          <div class="mb-3">
+            <label for="departmentCode" class="form-label">Kod działu:</label>
+            <input type="text" class="form-control" id="departmentCode" name="code" required>
+            <div class="invalid-feedback" id="departmentCodeError">Kod działu jest wymagany</div>
+          </div>
+          <div class="mb-3">
+            <label for="departmentName" class="form-label">Nazwa działu:</label>
+            <input type="text" class="form-control" id="departmentName" name="name" required>
+            <div class="invalid-feedback" id="departmentNameError">Nazwa działu jest wymagana</div>
+          </div>
+          <div class="mb-3">
+            <label for="departmentDescription" class="form-label">Opis:</label>
+            <textarea class="form-control" id="departmentDescription" name="description" rows="3"></textarea>
+          </div>
+        </form>
+        <div class="alert alert-danger d-none" id="departmentFormError"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+        <button type="button" class="btn btn-primary" id="saveDepartmentBtn">Zapisz</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal for adding a new position -->
+<div class="modal fade" id="addPositionModal" tabindex="-1" aria-labelledby="addPositionModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addPositionModalLabel">Dodaj nowe stanowisko</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="newPositionForm">
+          <input type="hidden" id="positionDepartmentId" name="departmentId">
+          <div class="mb-3">
+            <label for="positionName" class="form-label">Nazwa stanowiska:</label>
+            <input type="text" class="form-control" id="positionName" name="name" required minlength="3" maxlength="100">
+            <div class="invalid-feedback" id="positionNameError">Nazwa stanowiska jest wymagana (3-100 znaków)</div>
+          </div>
+          <div class="mb-3">
+            <label for="positionCode" class="form-label">Kod stanowiska:</label>
+            <input type="text" class="form-control" id="positionCode" name="code" required pattern="^[A-Z0-9_]{2,10}$">
+            <div class="form-text">Kod musi składać się z 2-10 znaków. Dozwolone znaki: wielkie litery, cyfry i podkreślenie (_)</div>
+            <div class="invalid-feedback" id="positionCodeError">Kod stanowiska jest wymagany i musi spełniać wymagania formatu</div>
+          </div>
+          <div class="mb-3">
+            <label for="positionDescription" class="form-label">Opis:</label>
+            <textarea class="form-control" id="positionDescription" name="description" rows="3" maxlength="500"></textarea>
+          </div>
+        </form>
+        <div class="alert alert-danger d-none" id="positionFormError"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+        <button type="button" class="btn btn-primary" id="savePositionBtn">Zapisz</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Get references to elements
+    const departmentSelect = document.getElementById('department');
+    const positionSelect = document.getElementById('position');
+    const addPositionBtn = document.getElementById('addPositionBtn');
+    const saveDepartmentBtn = document.getElementById('saveDepartmentBtn');
+    const savePositionBtn = document.getElementById('savePositionBtn');
+    const newDepartmentForm = document.getElementById('newDepartmentForm');
+    const newPositionForm = document.getElementById('newPositionForm');
+    const departmentFormError = document.getElementById('departmentFormError');
+    const positionFormError = document.getElementById('positionFormError');
+    const positionDepartmentId = document.getElementById('positionDepartmentId');
+
+    // Bootstrap modal objects
+    const departmentModal = new bootstrap.Modal(document.getElementById('addDepartmentModal'));
+    const positionModal = new bootstrap.Modal(document.getElementById('addPositionModal'));
+
+    // Enable/disable the "Add Position" button based on department selection
+    departmentSelect.addEventListener('change', function() {
+      addPositionBtn.disabled = !departmentSelect.value;
+    });
+
+    // Set the department ID in the position form when opening the modal
+    addPositionBtn.addEventListener('click', function() {
+      positionDepartmentId.value = departmentSelect.value;
+    });
+
+    // Handle department form submission
+    saveDepartmentBtn.addEventListener('click', function() {
+      // Reset error messages
+      departmentFormError.classList.add('d-none');
+
+      // Basic form validation
+      const departmentCode = document.getElementById('departmentCode');
+      const departmentName = document.getElementById('departmentName');
+      let isValid = true;
+
+      if (!departmentCode.value.trim()) {
+        departmentCode.classList.add('is-invalid');
+        isValid = false;
+      } else {
+        departmentCode.classList.remove('is-invalid');
+      }
+
+      if (!departmentName.value.trim()) {
+        departmentName.classList.add('is-invalid');
+        isValid = false;
+      } else {
+        departmentName.classList.remove('is-invalid');
+      }
+
+      if (!isValid) return;
+
+      // Prepare form data
+      const formData = {
+        code: departmentCode.value.trim(),
+        name: departmentName.value.trim(),
+        description: document.getElementById('departmentDescription').value.trim()
+      };
+
+      // Send AJAX request
+      fetch('/administration/employees/departments/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          [document.querySelector('meta[name="_csrf_header"]').getAttribute('content')]: document.querySelector('meta[name="_csrf"]').getAttribute('content')
+        },
+        body: JSON.stringify(formData)
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(data => {
+            throw new Error(data.message || 'Wystąpił błąd podczas tworzenia działu');
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        // Add the new department to the dropdown and select it
+        const option = new Option(data.name, data.id);
+        departmentSelect.add(option);
+        departmentSelect.value = data.id;
+
+        // Trigger change event to update positions dropdown
+        departmentSelect.dispatchEvent(new Event('change'));
+
+        // Close the modal and reset the form
+        departmentModal.hide();
+        newDepartmentForm.reset();
+      })
+      .catch(error => {
+        departmentFormError.textContent = error.message;
+        departmentFormError.classList.remove('d-none');
+      });
+    });
+
+    // Handle position form submission
+    savePositionBtn.addEventListener('click', function() {
+      // Reset error messages
+      positionFormError.classList.add('d-none');
+
+      // Basic form validation
+      const positionName = document.getElementById('positionName');
+      const positionCode = document.getElementById('positionCode');
+      let isValid = true;
+
+      if (!positionName.value.trim() || positionName.value.trim().length < 3) {
+        positionName.classList.add('is-invalid');
+        isValid = false;
+      } else {
+        positionName.classList.remove('is-invalid');
+      }
+
+      if (!positionCode.value.trim() || !/^[A-Z0-9_]{2,10}$/.test(positionCode.value.trim())) {
+        positionCode.classList.add('is-invalid');
+        isValid = false;
+      } else {
+        positionCode.classList.remove('is-invalid');
+      }
+
+      if (!isValid) return;
+
+      // Prepare form data
+      const formData = {
+        departmentId: positionDepartmentId.value,
+        name: positionName.value.trim(),
+        code: positionCode.value.trim(),
+        description: document.getElementById('positionDescription').value.trim()
+      };
+
+      // Send AJAX request
+      fetch('/administration/employees/positions/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          [document.querySelector('meta[name="_csrf_header"]').getAttribute('content')]: document.querySelector('meta[name="_csrf"]').getAttribute('content')
+        },
+        body: JSON.stringify(formData)
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(data => {
+            throw new Error(data.message || 'Wystąpił błąd podczas tworzenia stanowiska');
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        // Add the new position to the dropdown and select it
+        const option = new Option(data.name, data.id);
+        positionSelect.add(option);
+        positionSelect.value = data.id;
+
+        // Close the modal and reset the form
+        positionModal.hide();
+        newPositionForm.reset();
+      })
+      .catch(error => {
+        positionFormError.textContent = error.message;
+        positionFormError.classList.remove('d-none');
+      });
+    });
+
+    // Reset forms when modals are closed
+    document.getElementById('addDepartmentModal').addEventListener('hidden.bs.modal', function() {
+      newDepartmentForm.reset();
+      departmentFormError.classList.add('d-none');
+      document.getElementById('departmentCode').classList.remove('is-invalid');
+      document.getElementById('departmentName').classList.remove('is-invalid');
+    });
+
+    document.getElementById('addPositionModal').addEventListener('hidden.bs.modal', function() {
+      newPositionForm.reset();
+      positionFormError.classList.add('d-none');
+      document.getElementById('positionName').classList.remove('is-invalid');
+      document.getElementById('positionCode').classList.remove('is-invalid');
+    });
+  });
+</script>
+</body>
+</html>

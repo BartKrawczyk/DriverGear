@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="components :: site-head">
+    <title>Szczegóły pracownika</title>
+</head>
+<body class="d-flex flex-column min-vh-100">
+<!-- Hidden input to store employee ID -->
+<input type="hidden" id="employeeIdInput" th:value="${employee.id}">
+<nav th:replace="components :: navigation"></nav>
+
+<div class="container">
+    <div th:replace="components :: messages"></div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Szczegóły pracownika</h1>
+        <a th:href="@{/warehouse/employees}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Powrót do listy
+        </a>
+    </div>
+
+    <!-- Employee Information -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Informacje o pracowniku</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Numer pracownika:</strong> <code th:text="${employee.employeeNumber}">XX00000</code></p>
+                    <p><strong>Imię:</strong> <span th:text="${employee.firstName}">Imię</span></p>
+                    <p><strong>Nazwisko:</strong> <span th:text="${employee.lastName}">Nazwisko</span></p>
+                    <p><strong>Data zatrudnienia:</strong> <span th:text="${#temporals.format(employee.hireDate, 'dd.MM.yyyy')}">01.01.2023</span></p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Dział:</strong> <span th:text="${employee.departmentName}">Dział</span></p>
+                    <p><strong>Stanowisko:</strong> <span th:text="${employee.positionName}">Stanowisko</span></p>
+                    <p><strong>Status:</strong> 
+                        <span th:if="${employee.active}" class="badge bg-success">Aktywny</span>
+                        <span th:unless="${employee.active}" class="badge bg-secondary">Nieaktywny</span>
+                    </p>
+                    <p th:if="${employee.email}"><strong>Email:</strong> <span th:text="${employee.email}">email@example.com</span></p>
+                    <p th:if="${employee.phoneNumber}"><strong>Telefon:</strong> <span th:text="${employee.phoneNumber}">+48123456789</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dynamic Entitlement Overview -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Przegląd uprawnień do odzieży</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive" th:if="${entitlementData != null && !#lists.isEmpty(entitlementData.clothingEntitlements)}">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Typ odzieży</th>
+                            <th>Standardowa ilość</th>
+                            <th>Wydana ilość</th>
+                            <th>Oczekująca ilość</th>
+                            <th>Ekwiwalent do wypłaty</th>
+                            <th>Ostatnio wydano</th>
+                            <th>Następne odnowienie</th>
+                            <th>Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="entitlement : ${entitlementData.clothingEntitlements}">
+                            <td th:text="${entitlement.clothingTypeName}">Koszula</td>
+                            <td th:text="${entitlement.standardQuantity}">2</td>
+                            <td th:text="${entitlement.issuedQuantity}">1</td>
+                            <td th:text="${entitlement.pendingQuantity}">1</td>
+                            <td th:text="${entitlement.eligibleForCompensation == true ? #numbers.formatDecimal(entitlement.compensationValue, 1, 2) + ' zł' : '-'}">40.00 zł</td>
+                            <td th:text="${entitlement.lastIssuedDate != null ? #temporals.format(entitlement.lastIssuedDate, 'dd.MM.yyyy') : '-'}">01.01.2023</td>
+                            <td th:text="${entitlement.nextRenewalDate != null ? #temporals.format(entitlement.nextRenewalDate, 'dd.MM.yyyy') : '-'}">01.01.2024</td>
+                            <td th:with="stockQty=${stockQuantities.get(entitlement.clothingTypeId)}">
+                                <!-- Issue button: Show if issuedQuantity < standardQuantity AND stock > 0 -->
+                                <button th:if="${entitlement.issuedQuantity < entitlement.standardQuantity && stockQty != null && stockQty > 0}" 
+                                        class="btn btn-sm btn-success issue-clothing-btn mb-1" 
+                                        th:data-id="${entitlement.clothingTypeId}" 
+                                        th:data-name="${entitlement.clothingTypeName}">
+                                    <i class="bi bi-box-arrow-right"></i> 📦 Wydaj
+                                </button>
+
+                                <!--/*
+                                <button th:if="${entitlement.eligibleForCompensation == true}" 
+                                        class="btn btn-sm btn-warning compensate-btn mb-1" 
+                                        th:data-id="${entitlement.clothingTypeId}" 
+                                        th:data-name="${entitlement.clothingTypeName}"
+                                        th:data-amount="${#numbers.formatDecimal(entitlement.compensationValue, 1, 2)}">
+                                    <i class="bi bi-cash-coin"></i> 💰 Kompensuj
+                                </button>
+                                */-->
+                                <!-- Out of Stock button: Show if issuedQuantity < standardQuantity AND stock = 0 -->
+                                <button th:if="${entitlement.issuedQuantity < entitlement.standardQuantity && stockQty != null && stockQty == 0}" 
+                                        class="btn btn-sm btn-danger mb-1" 
+                                        disabled>
+                                    <i class="bi bi-x-circle"></i> Out of Stock
+                                </button>
+
+                                <!-- Fully Issued badge: Show if issuedQuantity >= standardQuantity -->
+                                <span th:if="${entitlement.issuedQuantity >= entitlement.standardQuantity}" 
+                                      class="badge bg-success">
+                                    Wydano komplet
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="alert alert-info" th:if="${entitlementData == null || #lists.isEmpty(entitlementData.clothingEntitlements)}">
+                Brak uprawnień do odzieży dla tego pracownika.
+            </div>
+        </div>
+    </div>
+
+    <!-- Compensation Information -->
+    <div class="card mb-4">
+        <div class="card-header bg-warning">
+            <h5 class="mb-0">Informacje o ekwiwalencie</h5>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-8">
+                    <p><strong>Całkowity ekwiwalent do wypłaty:</strong> 
+                        <span th:text="${#numbers.formatDecimal(totalPendingCompensation, 1, 2) + ' zł'}">0.00 zł</span>
+                    </p>
+                    <p><strong>Wypłacony ekwiwalent:</strong> 
+                        <span th:text="${#numbers.formatDecimal(totalPaidCompensation, 1, 2) + ' zł'}">0.00 zł</span>
+                    </p>
+                    <p th:if="${entitlementData.hasExpiredAssignments}">
+                        <strong>Uwaga:</strong> Pracownik posiada wygasłe przydziały odzieży, które nie zostały wydane.
+                    </p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-warning pay-compensation-btn" 
+                            th:data-id="${employee.id}" 
+                            th:data-amount="${totalPendingCompensation}"
+                            th:disabled="${totalPendingCompensation <= 0 && !entitlementData.hasExpiredAssignments}">
+                        <i class="bi bi-cash-coin"></i> Wypłać ekwiwalent
+                    </button>
+                </div>
+            </div>
+
+            <!-- Paid Compensations Section -->
+            <div class="mt-4">
+                <h6 class="mb-3">💰 Wypłacone ekwiwalenty:</h6>
+
+                <div th:if="${#lists.isEmpty(paidCompensations)}" class="alert alert-info">
+                    Brak wypłaconych ekwiwalentów dla tego pracownika.
+                </div>
+
+                <ul th:if="${!#lists.isEmpty(paidCompensations)}" class="list-group">
+                    <li th:each="compensation : ${paidCompensations}" class="list-group-item">
+                        🧥 <strong th:text="${compensation.clothingTypeName}">Buty ochronne</strong> – 
+                        <span th:text="${compensation.quantity != null ? compensation.quantity : '-'}">2</span> szt. –
+                        wygasły: <span th:text="${#temporals.format(compensation.periodEnd, 'dd.MM.yyyy')}">20.11.2023</span> – 
+                        wypłacono: <span th:text="${compensation.paymentDate != null ? #temporals.format(compensation.paymentDate, 'dd.MM.yyyy') : '-'}">04.06.2025</span> – 
+                        kwota: <span th:text="${#numbers.formatDecimal(compensation.amount, 1, 2) + ' zł'}">60.00 zł</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="components :: footer"></div>
+<div th:replace="components :: scripts"></div>
+
+<!-- Modal for Issue Clothing Confirmation -->
+<div class="modal fade" id="issueClothingModal" tabindex="-1" aria-labelledby="issueClothingModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="issueClothingModalLabel">Potwierdzenie wydania odzieży</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Czy na pewno chcesz wydać <span id="clothingItemName"></span>?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+                <button type="button" class="btn btn-success" id="confirmIssueBtn">Potwierdź wydanie</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Pay Compensation Confirmation -->
+<div class="modal fade" id="payCompensationModal" tabindex="-1" aria-labelledby="payCompensationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="payCompensationModalLabel">Potwierdzenie wypłaty ekwiwalentu</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Czy na pewno chcesz wypłacić ekwiwalent <span id="compensationItemName"></span> w wysokości <span id="compensationAmount"></span> zł?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+                <button type="button" class="btn btn-warning" id="confirmPayBtn">Potwierdź wypłatę</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get employee ID from the hidden input (always available)
+        let employeeId = document.getElementById('employeeIdInput').value;
+
+        // Issue Clothing Button Click
+        const issueButtons = document.querySelectorAll('.issue-clothing-btn');
+        const issueModal = new bootstrap.Modal(document.getElementById('issueClothingModal'));
+        let currentClothingTypeId = null;
+
+        issueButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                currentClothingTypeId = this.getAttribute('data-id');
+                document.getElementById('clothingItemName').textContent = this.getAttribute('data-name');
+                issueModal.show();
+            });
+        });
+
+        // Confirm Issue Button Click
+        document.getElementById('confirmIssueBtn').addEventListener('click', function() {
+            if (currentClothingTypeId && employeeId) {
+                fetch(`/warehouse/employees/issue-clothing/${currentClothingTypeId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ employeeId: employeeId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Check if a hard refresh is required
+                        if (data.refreshRequired) {
+                            console.log('Hard refresh required, clearing cache and reloading page');
+                            // Force a hard reload, bypassing the cache
+                            location.reload(true);
+                        } else {
+                            // Normal reload
+                            location.reload();
+                        }
+                    } else {
+                        console.error('Error:', data.message);
+                        alert('Błąd: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Wystąpił błąd podczas wydawania odzieży.');
+                });
+
+                issueModal.hide();
+            } else {
+                console.error('Missing clothingTypeId or employeeId');
+                alert('Wystąpił błąd: Brak identyfikatora typu odzieży lub pracownika.');
+            }
+        });
+
+        // Compensate Button Click
+        const compensateButtons = document.querySelectorAll('.compensate-btn');
+        const compensateModal = new bootstrap.Modal(document.getElementById('payCompensationModal'));
+        let clothingTypeIdForCompensation = null;
+
+        compensateButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                clothingTypeIdForCompensation = this.getAttribute('data-id');
+                document.getElementById('compensationItemName').textContent = this.getAttribute('data-name');
+                document.getElementById('compensationAmount').textContent = this.getAttribute('data-amount');
+                compensateModal.show();
+            });
+        });
+
+        // Pay Compensation Button Click (for the total compensation button)
+        const payModal = new bootstrap.Modal(document.getElementById('payCompensationModal'));
+        const payButton = document.querySelector('.pay-compensation-btn');
+
+        if (payButton) {
+            payButton.addEventListener('click', function() {
+                // For total compensation, we don't need a specific clothing type
+                clothingTypeIdForCompensation = null;
+                // Clear the item name for total compensation
+                document.getElementById('compensationItemName').textContent = '';
+                document.getElementById('compensationAmount').textContent = this.getAttribute('data-amount');
+                payModal.show();
+            });
+        }
+
+        // Confirm Pay Button Click
+        document.getElementById('confirmPayBtn').addEventListener('click', function() {
+            if (employeeId) {
+                const requestBody = {};
+
+                // If we have a specific clothing type for compensation, include it
+                if (clothingTypeIdForCompensation) {
+                    requestBody.clothingTypeId = clothingTypeIdForCompensation;
+                }
+
+                fetch(`/warehouse/employees/pay-compensation/${employeeId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Check if a hard refresh is required
+                        if (data.refreshRequired) {
+                            console.log('Hard refresh required, clearing cache and reloading page');
+                            // Force a hard reload, bypassing the cache
+                            location.reload(true);
+                        } else {
+                            // Normal reload
+                            location.reload();
+                        }
+                    } else {
+                        console.error('Error:', data.message);
+                        alert('Błąd: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Wystąpił błąd podczas wypłaty ekwiwalentu.');
+                });
+
+                payModal.hide();
+            } else {
+                console.error('Missing employeeId');
+                alert('Wystąpił błąd: Brak identyfikatora pracownika.');
+            }
+        });
+    });
+</script>
+</body>
+</html>

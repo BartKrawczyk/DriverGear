@@ -87,6 +87,25 @@ public class PositionController {
         }
     }
 
+    @GetMapping("/by-department/{departmentId}")
+    @ResponseBody
+    public ResponseEntity<List<PositionDTO>> getPositionsByDepartment(@PathVariable Long departmentId, 
+                                                                      @RequestParam(required = false, defaultValue = "true") Boolean activeOnly) {
+        List<PositionDTO> positions = activeOnly 
+                ? positionService.findActivePositionsByDepartment(departmentId)
+                : positionService.findPositionsByDepartment(departmentId);
+        return ResponseEntity.ok(positions);
+    }
+
+    @GetMapping("/all")
+    @ResponseBody
+    public ResponseEntity<List<PositionDTO>> getAllPositions(@RequestParam(required = false, defaultValue = "true") Boolean activeOnly) {
+        List<PositionDTO> positions = activeOnly 
+                ? positionService.findActivePositions()
+                : positionService.findAllPositions();
+        return ResponseEntity.ok(positions);
+    }
+
     @PostMapping
     public String createPosition(@Valid @ModelAttribute("positionDTO") CreatePositionDTO createPositionDTO,
                                  BindingResult bindingResult,
@@ -189,4 +208,3 @@ public class PositionController {
         return "redirect:/administration/positions";
     }
 }
-

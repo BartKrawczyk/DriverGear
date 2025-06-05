@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="components :: site-head">
+  <title>Stan magazynu</title>
+</head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="components :: navigation"></nav>
+
+<div class="container">
+  <div th:replace="components :: messages"></div>
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Stan magazynu</h1>
+    <div>
+      <a th:href="@{/warehouse/inventory/add}" class="btn btn-primary me-2">
+        <i class="bi bi-plus-circle"></i> Dodaj do magazynu
+      </a>
+      <a th:href="@{/warehouse}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Powrót do panelu
+      </a>
+    </div>
+  </div>
+
+  <!-- Filter Form -->
+  <div class="card mb-4">
+    <div class="card-header bg-secondary text-white">
+      <h5 class="mb-0">Filtruj</h5>
+    </div>
+    <div class="card-body">
+      <form th:action="@{/warehouse/inventory}" method="get" class="row g-3">
+        <div class="col-md-9">
+          <label for="clothingTypeId" class="form-label">Typ odzieży:</label>
+          <select class="form-select" id="clothingTypeId" name="clothingTypeId">
+            <option value="">Wszystkie typy</option>
+            <option th:each="type : ${clothingTypes}" 
+                    th:value="${type.id}" 
+                    th:text="${type.name}"
+                    th:selected="${clothingTypeId != null && clothingTypeId == type.id}">Nazwa typu odzieży</option>
+          </select>
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="bi bi-search"></i> Filtruj
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header bg-primary text-white">
+      <h5 class="mb-0">Lista przedmiotów w magazynie</h5>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-striped table-hover">
+          <thead>
+            <tr>
+              <th>Typ odzieży</th>
+              <th>Ilość</th>
+              <th>Poziom zapasu</th>
+              <th>Ostatnia aktualizacja</th>
+              <th>Akcje</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="item : ${inventoryItems}">
+              <td th:text="${item.clothingType.name}">Koszula</td>
+              <td th:text="${item.quantity}">10</td>
+              <td>
+                <span th:with="stockLevel=${T(pl.programodawca.drivergear.model.StockLevel).fromQuantity(item.quantity)}"
+                      th:class="${stockLevel.name() == 'LOW' ? 'badge bg-danger' : 
+                                (stockLevel.name() == 'MEDIUM' ? 'badge bg-warning' : 'badge bg-success')}"
+                      th:text="${stockLevel.displayName}">Poziom zapasu</span>
+              </td>
+              <td th:text="${#temporals.format(item.lastUpdated, 'dd.MM.yyyy HH:mm')}">01.01.2023 12:00</td>
+              <td>
+                <button type="button" class="btn btn-sm btn-outline-primary"
+                        data-bs-toggle="modal" data-bs-target="#addStockModal"
+                        th:data-clothing-type-id="${item.clothingType.id}"
+                        th:data-clothing-type-name="${item.clothingType.name}"
+                        onclick="prepareAddStockModal(this)">
+                  <i class="bi bi-plus"></i> Dodaj
+                </button>
+              </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(inventoryItems)}">
+              <td colspan="5" class="text-center">Brak przedmiotów w magazynie</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div th:replace="components :: footer"></div>
+
+<!-- Modal for adding stock -->
+<div class="modal fade" id="addStockModal" tabindex="-1" aria-labelledby="addStockModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addStockModalLabel">Przyjmij towar do magazynu</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="addStockForm" th:action="@{/warehouse/inventory/add}" method="post">
+        <div class="modal-body">
+          <input type="hidden" id="modalClothingTypeId" name="clothingTypeId">
+
+          <div class="mb-3">
+            <label class="form-label">Typ odzieży:</label>
+            <p id="clothingTypeName" class="form-control-plaintext"></p>
+          </div>
+
+
+          <div class="mb-3">
+            <label for="modalQuantity" class="form-label">Ilość:</label>
+            <input type="number" class="form-control" id="modalQuantity" name="quantity" value="1" min="1" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+          <button type="submit" class="btn btn-primary">Zatwierdź</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div th:replace="components :: scripts"></div>
+
+<script>
+  function prepareAddStockModal(button) {
+    const clothingTypeId = button.getAttribute('data-clothing-type-id');
+    const clothingTypeName = button.getAttribute('data-clothing-type-name');
+
+    document.getElementById('modalClothingTypeId').value = clothingTypeId;
+    document.getElementById('clothingTypeName').textContent = clothingTypeName;
+    document.getElementById('modalQuantity').value = 1;
+  }
+</script>
+</body>
+</html>

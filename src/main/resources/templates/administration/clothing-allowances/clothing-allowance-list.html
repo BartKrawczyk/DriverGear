@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="components :: site-head">
+  <title>Lista przydziałów odzieżowych</title>
+</head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="components :: navigation"></nav>
+
+<div class="container">
+  <div th:replace="components :: messages"></div>
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Lista przydziałów odzieżowych</h1>
+    <div>
+      <form th:action="@{/administration/clothing-allowances}" method="get" class="d-inline-block me-2">
+        <div class="input-group">
+          <select class="form-select me-2" id="employeeId" name="employeeId">
+            <option value="">Wszyscy pracownicy</option>
+            <option th:each="employee : ${employees}"
+                    th:value="${employee.id}"
+                    th:text="${employee.fullName}"
+                    th:selected="${employee.id == selectedEmployeeId}">
+            </option>
+          </select>
+          <select class="form-select me-2" id="positionId" name="positionId">
+            <option value="">Wszystkie stanowiska</option>
+            <option th:each="position : ${positions}"
+                    th:value="${position.id}"
+                    th:text="${position.name}"
+                    th:selected="${position.id == selectedPositionId}">
+            </option>
+          </select>
+          <select class="form-select me-2" id="status" name="status">
+            <option value="">Wszystkie statusy</option>
+            <option th:each="statusOpt : ${statuses}"
+                    th:value="${statusOpt}"
+                    th:text="${statusOpt.displayName}"
+                    th:selected="${statusOpt == selectedStatus}">
+            </option>
+          </select>
+          <button type="submit" class="btn btn-outline-secondary">
+            <i class="bi bi-filter"></i> Filtruj
+          </button>
+        </div>
+      </form>
+      <div class="btn-group">
+        <a th:href="@{/administration/clothing-allowances/new}" class="btn btn-primary">
+          <i class="bi bi-plus-circle"></i> Dodaj nowy przydział
+        </a>
+        <form th:action="@{/administration/clothing-allowances/update-expired}" method="post" class="d-inline">
+          <button type="submit" class="btn btn-warning">
+            <i class="bi bi-arrow-clockwise"></i> Aktualizuj wygasłe
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-striped table-hover">
+      <thead class="table-dark">
+      <tr>
+        <th>ID</th>
+        <th>Pracownik</th>
+        <th>Stanowisko</th>
+        <th>Data rozpoczęcia</th>
+        <th>Data zakończenia</th>
+        <th>Status</th>
+        <th>Ekwiwalenty</th>
+        <th>Akcje</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="allowance : ${allowances}"
+          th:class="${allowance.status == T(pl.programodawca.drivergear.model.AllowanceStatus).EXPIRED} ? 'table-secondary' : 
+                   (${allowance.status == T(pl.programodawca.drivergear.model.AllowanceStatus).CANCELLED} ? 'table-danger' : '')">
+        <td th:text="${allowance.id}">1</td>
+        <td th:text="${allowance.employeeName}">Jan Kowalski</td>
+        <td th:text="${allowance.positionName}">Kierowca</td>
+        <td th:text="${#temporals.format(allowance.startDate, 'dd.MM.yyyy')}">01.01.2023</td>
+        <td th:text="${#temporals.format(allowance.endDate, 'dd.MM.yyyy')}">31.12.2023</td>
+        <td>
+          <span th:if="${allowance.status == T(pl.programodawca.drivergear.model.AllowanceStatus).ACTIVE}" class="badge bg-success">Aktywny</span>
+          <span th:if="${allowance.status == T(pl.programodawca.drivergear.model.AllowanceStatus).EXPIRED}" class="badge bg-secondary">Wygasły</span>
+          <span th:if="${allowance.status == T(pl.programodawca.drivergear.model.AllowanceStatus).CANCELLED}" class="badge bg-danger">Anulowany</span>
+          <span th:if="${allowance.status == T(pl.programodawca.drivergear.model.AllowanceStatus).PENDING}" class="badge bg-warning">Oczekujący</span>
+        </td>
+        <td th:text="${allowance.compensationsCount}">2</td>
+        <td>
+          <div class="btn-group" role="group">
+            <a th:href="@{/administration/clothing-allowances/{id}/edit(id=${allowance.id})}"
+               class="btn btn-sm btn-warning">
+              <i class="bi bi-pencil"></i> Edytuj
+            </a>
+            <button type="button" class="btn btn-sm btn-danger" 
+                    data-bs-toggle="modal" 
+                    th:data-bs-target="'#cancelModal' + ${allowance.id}"
+                    th:if="${allowance.status != T(pl.programodawca.drivergear.model.AllowanceStatus).CANCELLED}">
+              <i class="bi bi-x-circle"></i> Anuluj
+            </button>
+
+            <!-- Modal for cancellation -->
+            <div class="modal fade" th:id="'cancelModal' + ${allowance.id}" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="cancelModalLabel">Anulowanie przydziału odzieżowego</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <form th:action="@{/administration/clothing-allowances/{id}/cancel(id=${allowance.id})}" method="post">
+                    <div class="modal-body">
+                      <div class="mb-3">
+                        <label for="reason" class="form-label">Powód anulowania:</label>
+                        <textarea class="form-control" id="reason" name="reason" rows="3" required></textarea>
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+                      <button type="submit" class="btn btn-danger">Potwierdź anulowanie</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </td>
+      </tr>
+      <tr th:if="${#lists.isEmpty(allowances)}">
+        <td colspan="8" class="text-center">Brak przydziałów odzieżowych</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div th:replace="components :: footer"></div>
+<div th:replace="components :: scripts"></div>
+</body>
+</html>
