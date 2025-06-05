@@ -39,6 +39,7 @@ public class ClothingCompensationDTO {
     private String notes;
     private Integer quantity;
     private BigDecimal compensationAmount;
+    private String employeeNumber;
 
     public static ClothingCompensationDTO fromEntity(ClothingCompensation compensation) {
         if (compensation == null) {
@@ -70,6 +71,7 @@ public class ClothingCompensationDTO {
                 .periodEnd(compensation.getPeriodEnd())
                 .status(compensation.getStatus())
                 .paymentDate(compensation.getPaymentDate())
+                .employeeNumber(compensation.getEmployee().getEmployeeNumber())
                 .notes(compensation.getNotes())
                 .build();
     }
