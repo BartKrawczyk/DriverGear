@@ -10,11 +10,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import pl.programodawca.drivergear.dto.ClothingAssignmentDTO;
-import pl.programodawca.drivergear.dto.ClothingCompensationDTO;
-import pl.programodawca.drivergear.dto.ClothingTypeEntitlementDTO;
-import pl.programodawca.drivergear.dto.EmployeeDTO;
-import pl.programodawca.drivergear.dto.EmployeeEntitlementDTO;
+import pl.programodawca.drivergear.dto.*;
 import pl.programodawca.drivergear.exception.ResourceNotFoundException;
 import pl.programodawca.drivergear.model.AssignmentStatus;
 import pl.programodawca.drivergear.model.CompensationStatus;
@@ -22,13 +18,8 @@ import pl.programodawca.drivergear.model.ClothingType;
 import pl.programodawca.drivergear.model.WarehouseInventory;
 import pl.programodawca.drivergear.repository.ClothingTypeRepository;
 import pl.programodawca.drivergear.repository.WarehouseInventoryRepository;
-import pl.programodawca.drivergear.service.ClothingAssignmentService;
-import pl.programodawca.drivergear.service.ClothingCompensationService;
-import pl.programodawca.drivergear.service.DepartmentService;
-import pl.programodawca.drivergear.service.EmployeeEntitlementService;
-import pl.programodawca.drivergear.service.EmployeeService;
-import pl.programodawca.drivergear.service.PositionService;
-import pl.programodawca.drivergear.service.WarehouseInventoryService;
+import pl.programodawca.drivergear.service.*;
+
 import java.util.Optional;
 
 import java.math.BigDecimal;
@@ -52,6 +43,7 @@ public class WarehouseEmployeeController {
     private final ClothingTypeRepository clothingTypeRepository;
     private final WarehouseInventoryRepository warehouseInventoryRepository;
     private final EmployeeEntitlementService employeeEntitlementService;
+    private final ClothingTypeService clothingTypeService;
 
     @GetMapping
     public String listEmployees(
@@ -315,6 +307,38 @@ public class WarehouseEmployeeController {
             response.put("success", false);
             response.put("message", "Error processing compensation payment: " + e.getMessage());
             return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @PostMapping("/issue-by-barcode")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> issueByBarcode(@RequestBody Map<String, Object> requestBody) {
+        try {
+            String barcode = (String) requestBody.get("barcode");
+            Long employeeId = Long.valueOf(requestBody.get("employeeId").toString());
+
+            ClothingTypeDTO clothingType = clothingTypeService.findByBarcode(barcode);
+            if (clothingType == null) {
+                return ResponseEntity.ok(Map.of(
+                        "success", false,
+                        "message", "Nie znaleziono odzieży dla kodu: " + barcode
+                ));
+            }
+
+            Map<String, Object> issueRequest = Map.of("employeeId", employeeId);
+            ResponseEntity<Map<String, Object>> result = issueClothing(clothingType.getId(), issueRequest);
+
+            Map<String, Object> response = result.getBody();
+            if (response != null && Boolean.TRUE.equals(response.get("success"))) {
+                response.put("refreshRequired", true);
+            }
+
+            return ResponseEntity.ok(response != null ? response : Map.of("success", false, "message", "Nieznany błąd"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Błąd wydawania odzieży: " + e.getMessage()
+            ));
         }
     }
 }

@@ -44,4 +44,5 @@ public class ClothingType {
 
     @OneToMany(mappedBy = "clothingType")
     private Set<PositionClothingItem> clothingItems = new HashSet<>();
+
 }

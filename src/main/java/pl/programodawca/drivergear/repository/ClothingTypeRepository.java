@@ -57,4 +57,5 @@ public interface ClothingTypeRepository extends JpaRepository<ClothingType, Long
      * @return true if a clothing type with the given barcode exists (excluding the one with the given ID), false otherwise
      */
     boolean existsByBarcodeAndIdNot(String barcode, Long id);
+
 }
