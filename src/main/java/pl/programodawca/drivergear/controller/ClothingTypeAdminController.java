@@ -1,6 +1,8 @@
 package pl.programodawca.drivergear.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -134,6 +136,35 @@ public class ClothingTypeAdminController {
             return ResponseEntity.ok(clothingTypeDTO);
         } catch (ResourceNotFoundException e) {
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    //endpoint dla wyświetlania barcodu
+    @GetMapping("/{id}/barcode")
+    public String showBarcode(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
+        try {
+            ClothingTypeDTO clothingType = clothingTypeService.findById(id);
+            model.addAttribute("clothingType", clothingType);
+            return "administration/clothing-types/barcode-view";
+        } catch (ResourceNotFoundException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/administration/clothing-types";
+        }
+    }
+
+    // endpoint dla wyświetlania obrazka barecode
+    @GetMapping("/{id}/barcode-image")
+    @ResponseBody
+    public ResponseEntity<byte[]> getBarcodeImage(@PathVariable Long id) {
+        try {
+            byte[] imageData = clothingTypeService.generateBarcodeImage(id);
+            return ResponseEntity.ok()
+                    .contentType(MediaType.IMAGE_PNG)
+                    .body(imageData);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }

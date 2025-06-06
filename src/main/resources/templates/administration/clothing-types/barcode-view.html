@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="components :: site-head">
+    <title>Kod kreskowy</title>
+</head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="components :: navigation" class="no-print"></nav>
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Kod kreskowy - <span th:text="${clothingType.name}">Nazwa</span></h1>
+        <div>
+            <a th:href="@{/administration/clothing-types}" class="btn btn-secondary">Powrót</a>
+            <button onclick="window.print()" class="btn btn-primary">Drukuj</button>
+        </div>
+    </div>
+    <div class="text-center">
+        <img th:src="@{/administration/clothing-types/{id}/barcode-image(id=${clothingType.id})}" alt="Barcode" class="img-fluid">
+        <div class="mt-3" th:text="${clothingType.barcode}">KOD123</div>
+    </div>
+</div>
+</body>
+</html>

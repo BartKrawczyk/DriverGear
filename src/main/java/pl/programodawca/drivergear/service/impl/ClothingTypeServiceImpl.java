@@ -1,5 +1,9 @@
 package pl.programodawca.drivergear.service.impl;
 
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.oned.Code128Writer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,6 +15,7 @@ import pl.programodawca.drivergear.model.ClothingType;
 import pl.programodawca.drivergear.repository.ClothingTypeRepository;
 import pl.programodawca.drivergear.service.ClothingTypeService;
 
+import java.io.ByteArrayOutputStream;
 import java.util.List;
 
 @Service
@@ -52,6 +57,11 @@ public class ClothingTypeServiceImpl implements ClothingTypeService {
         }
 
         ClothingType clothingType = clothingTypeDTO.toEntity();
+
+        if (clothingType.getBarcode() == null || clothingType.getBarcode().isEmpty()) {
+            clothingType.setBarcode(generateBarcode(clothingType));
+        }
+
         ClothingType savedClothingType = clothingTypeRepository.save(clothingType);
         return ClothingTypeDTO.fromEntity(savedClothingType);
     }
@@ -83,6 +93,7 @@ public class ClothingTypeServiceImpl implements ClothingTypeService {
         return ClothingTypeDTO.fromEntity(updatedClothingType);
     }
 
+    // metoda generująca kod
     @Override
     public void deleteClothingType(Long id) throws ResourceNotFoundException {
         // Check if the clothing type exists
@@ -104,5 +115,53 @@ public class ClothingTypeServiceImpl implements ClothingTypeService {
 
         // Check if the clothing type is used in clothing items
         return !clothingType.getClothingItems().isEmpty();
+    }
+
+    // metoda do generowania obrazu kodu
+    @Override
+    public String generateBarcode(ClothingType clothingType) {
+        String prefix = clothingType.getName()
+                .replaceAll("[^A-Z0-9]", "")
+                .toUpperCase();
+        prefix = (prefix + "XXXX").substring(0, 4);
+
+        int maxSequence = 0;
+        for (ClothingType type : clothingTypeRepository.findAll()) {
+            if (type.getBarcode() != null && type.getBarcode().startsWith(prefix)) {
+                try {
+                    int seq = Integer.parseInt(type.getBarcode().substring(4));
+                    maxSequence = Math.max(maxSequence, seq);
+                } catch (NumberFormatException ignored) {}
+            }
+        }
+
+        return prefix + String.format("%03d", maxSequence + 1);
+    }
+
+    @Override
+    public byte[] generateBarcodeImage(Long id) {
+        ClothingType clothingType = clothingTypeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Typ odzieży", "id", id));
+
+        if (clothingType.getBarcode() == null || clothingType.getBarcode().isEmpty()) {
+            clothingType.setBarcode(generateBarcode(clothingType));
+            clothingTypeRepository.save(clothingType);
+        }
+
+        try {
+            BitMatrix matrix = new Code128Writer()
+                    .encode(clothingType.getBarcode(), BarcodeFormat.CODE_128, 300, 100);
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            MatrixToImageWriter.writeToStream(matrix, "PNG", stream);
+            return stream.toByteArray();
+        } catch (Exception e) {
+            throw new RuntimeException("Błąd generowania kodu: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public ClothingTypeDTO findByBarcode(String barcode) {
+        ClothingType clothingType = clothingTypeRepository.findByBarcode(barcode);
+        return clothingType != null ? ClothingTypeDTO.fromEntity(clothingType) : null;
     }
 }

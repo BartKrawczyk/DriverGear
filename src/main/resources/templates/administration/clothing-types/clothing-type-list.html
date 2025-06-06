@@ -60,6 +60,10 @@
                class="btn btn-sm btn-warning">
               <i class="bi bi-pencil"></i> Edytuj
             </a>
+            <a th:href="@{/administration/clothing-types/{id}/barcode(id=${clothingType.id})}"
+               class="btn btn-sm btn-info">
+              <i class="bi bi-upc-scan"></i> Kod kreskowy
+            </a>
             <form th:action="@{/administration/clothing-types/{id}(id=${clothingType.id})}"
                   method="post" class="d-inline"
                   onsubmit="return confirm('Czy na pewno chcesz usunąć ten typ odzieży?')">

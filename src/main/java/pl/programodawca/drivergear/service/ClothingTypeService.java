@@ -2,6 +2,7 @@ package pl.programodawca.drivergear.service;
 
 import pl.programodawca.drivergear.dto.ClothingTypeDTO;
 import pl.programodawca.drivergear.exception.ResourceNotFoundException;
+import pl.programodawca.drivergear.model.ClothingType;
 
 import java.util.List;
 
@@ -55,4 +56,11 @@ public interface ClothingTypeService {
      * @return true if clothing type is in use, false otherwise
      */
     boolean isClothingTypeInUse(Long id);
+
+    // metoda do generowania obrazu kodu
+    String generateBarcode(ClothingType clothingType);
+
+    byte[] generateBarcodeImage(Long id);
+
+    ClothingTypeDTO findByBarcode(String barcode);
 }
