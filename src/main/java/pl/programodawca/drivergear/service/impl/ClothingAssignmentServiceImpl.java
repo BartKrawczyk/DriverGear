@@ -10,6 +10,7 @@ import pl.programodawca.drivergear.exception.BusinessException;
 import pl.programodawca.drivergear.exception.EntityNotFoundException;
 import pl.programodawca.drivergear.model.*;
 import pl.programodawca.drivergear.repository.ClothingAssignmentRepository;
+import pl.programodawca.drivergear.repository.ClothingCompensationRepository;
 import pl.programodawca.drivergear.repository.EmployeeRepository;
 import pl.programodawca.drivergear.repository.PositionClothingAllowanceRepository;
 import pl.programodawca.drivergear.service.ClothingAssignmentService;
@@ -27,6 +28,7 @@ import java.util.Set;
 @Transactional
 public class ClothingAssignmentServiceImpl implements ClothingAssignmentService {
     private final ClothingAssignmentRepository assignmentRepository;
+    private final ClothingCompensationRepository clothingCompensationRepository;
     private final EmployeeRepository employeeRepository;
     private final PositionClothingAllowanceRepository positionAllowanceRepository;
     private final WarehouseInventoryService warehouseInventoryService;
@@ -36,13 +38,14 @@ public class ClothingAssignmentServiceImpl implements ClothingAssignmentService 
     private final ClothingCompensationService clothingCompensationService;
 
     public ClothingAssignmentServiceImpl(
-            ClothingAssignmentRepository assignmentRepository,
+            ClothingAssignmentRepository assignmentRepository, ClothingCompensationRepository clothingCompensationRepository,
             EmployeeRepository employeeRepository,
             PositionClothingAllowanceRepository positionAllowanceRepository,
             WarehouseInventoryService warehouseInventoryService,
             ApplicationContext applicationContext,
             @Lazy ClothingCompensationService clothingCompensationService) {
         this.assignmentRepository = assignmentRepository;
+        this.clothingCompensationRepository = clothingCompensationRepository;
         this.employeeRepository = employeeRepository;
         this.positionAllowanceRepository = positionAllowanceRepository;
         this.warehouseInventoryService = warehouseInventoryService;
@@ -111,14 +114,14 @@ public class ClothingAssignmentServiceImpl implements ClothingAssignmentService 
         assignment.setNotes(notes);
 
         ClothingAssignment saved = assignmentRepository.save(assignment);
-        return ClothingAssignmentDTO.fromEntity(saved);
+        return ClothingAssignmentDTO.fromEntity(saved, clothingCompensationRepository);
     }
 
     @Override
     public ClothingAssignmentDTO getAssignmentById(Long assignmentId) {
         ClothingAssignment assignment = assignmentRepository.findById(assignmentId)
                 .orElseThrow(() -> new EntityNotFoundException("Przydział odzieżowy o ID " + assignmentId + " nie został znaleziony"));
-        return ClothingAssignmentDTO.fromEntity(assignment);
+        return ClothingAssignmentDTO.fromEntity(assignment, clothingCompensationRepository);
     }
 
     @Override
@@ -129,7 +132,7 @@ public class ClothingAssignmentServiceImpl implements ClothingAssignmentService 
         }
 
         List<ClothingAssignment> assignments = assignmentRepository.findByEmployeeId(employeeId);
-        return ClothingAssignmentDTO.fromEntities(assignments);
+        return ClothingAssignmentDTO.fromEntities(assignments, clothingCompensationRepository);
     }
 
     @Override
@@ -140,7 +143,7 @@ public class ClothingAssignmentServiceImpl implements ClothingAssignmentService 
         }
 
         List<ClothingAssignment> assignments = assignmentRepository.findByEmployeeIdAndStatus(employeeId, status);
-        return ClothingAssignmentDTO.fromEntities(assignments);
+        return ClothingAssignmentDTO.fromEntities(assignments, clothingCompensationRepository);
     }
 
     @Override
@@ -152,20 +155,20 @@ public class ClothingAssignmentServiceImpl implements ClothingAssignmentService 
         }
 
         List<ClothingAssignment> assignments = assignmentRepository.findByPositionClothingAllowanceId(positionClothingAllowanceId);
-        return ClothingAssignmentDTO.fromEntities(assignments);
+        return ClothingAssignmentDTO.fromEntities(assignments, clothingCompensationRepository);
     }
 
     @Override
     public List<ClothingAssignmentDTO> getAssignmentsByStatus(AssignmentStatus status) {
         List<ClothingAssignment> assignments = assignmentRepository.findByStatus(status);
-        return ClothingAssignmentDTO.fromEntities(assignments);
+        return ClothingAssignmentDTO.fromEntities(assignments, clothingCompensationRepository);
     }
 
     @Override
     public List<ClothingAssignmentDTO> getActiveAssignmentsOnDate(LocalDate date) {
         LocalDate checkDate = date != null ? date : LocalDate.now();
         List<ClothingAssignment> assignments = assignmentRepository.findActiveOnDate(checkDate);
-        return ClothingAssignmentDTO.fromEntities(assignments);
+        return ClothingAssignmentDTO.fromEntities(assignments, clothingCompensationRepository);
     }
 
     @Override
@@ -177,7 +180,7 @@ public class ClothingAssignmentServiceImpl implements ClothingAssignmentService 
                 AssignmentStatus.ISSUED
         );
         List<ClothingAssignment> assignments = assignmentRepository.findExpiredAssignments(checkDate, nonExpiredStatuses);
-        return ClothingAssignmentDTO.fromEntities(assignments);
+        return ClothingAssignmentDTO.fromEntities(assignments, clothingCompensationRepository);
     }
 
     @Override
@@ -189,7 +192,7 @@ public class ClothingAssignmentServiceImpl implements ClothingAssignmentService 
         validateStatusTransition(assignment.getStatus(), status);
 
         assignment.setStatus(status);
-        return ClothingAssignmentDTO.fromEntity(assignmentRepository.save(assignment));
+        return ClothingAssignmentDTO.fromEntity(assignmentRepository.save(assignment), clothingCompensationRepository);
     }
 
     @Override
@@ -230,7 +233,7 @@ public class ClothingAssignmentServiceImpl implements ClothingAssignmentService 
         assignment.setIssuedToEmployee(true);
         assignment.setIssuedDate(issueDate);
         assignment.setStatus(AssignmentStatus.ISSUED);
-        return ClothingAssignmentDTO.fromEntity(assignmentRepository.save(assignment));
+        return ClothingAssignmentDTO.fromEntity(assignmentRepository.save(assignment), clothingCompensationRepository);
     }
 
     @Override
@@ -246,7 +249,7 @@ public class ClothingAssignmentServiceImpl implements ClothingAssignmentService 
         }
 
         assignment.setEligibleForCompensation(true);
-        return ClothingAssignmentDTO.fromEntity(assignmentRepository.save(assignment));
+        return ClothingAssignmentDTO.fromEntity(assignmentRepository.save(assignment), clothingCompensationRepository);
     }
 
     @Override
@@ -255,7 +258,7 @@ public class ClothingAssignmentServiceImpl implements ClothingAssignmentService 
                 .orElseThrow(() -> new EntityNotFoundException("Przydział odzieżowy o ID " + assignmentId + " nie został znaleziony"));
 
         assignment.setNotes(notes);
-        return ClothingAssignmentDTO.fromEntity(assignmentRepository.save(assignment));
+        return ClothingAssignmentDTO.fromEntity(assignmentRepository.save(assignment), clothingCompensationRepository);
     }
 
     @Override
@@ -272,59 +275,65 @@ public class ClothingAssignmentServiceImpl implements ClothingAssignmentService 
 
         assignment.setStatus(AssignmentStatus.CANCELLED);
         assignment.setNotes(reason);
-        return ClothingAssignmentDTO.fromEntity(assignmentRepository.save(assignment));
+        return ClothingAssignmentDTO.fromEntity(assignmentRepository.save(assignment), clothingCompensationRepository);
     }
 
     @Override
     @Transactional
     public int updateExpiredAssignments() {
         LocalDate today = LocalDate.now();
-        System.out.println("Running expiration task. Today: " + today);
+        System.out.println("🕒 [expire-assignments] Start. Today = " + today);
 
         List<AssignmentStatus> nonExpiredStatuses = Arrays.asList(
-                AssignmentStatus.PENDING, 
-                AssignmentStatus.ASSIGNED, 
+                AssignmentStatus.PENDING,
+                AssignmentStatus.ASSIGNED,
                 AssignmentStatus.ISSUED
         );
-        List<ClothingAssignment> expiredAssignments = assignmentRepository.findExpiredAssignments(today, nonExpiredStatuses);
 
-        // Collect unique employee IDs from expired assignments
+        List<ClothingAssignment> expiredAssignments = assignmentRepository
+                .findExpiredAssignments(today, nonExpiredStatuses);
+
         Set<Long> affectedEmployeeIds = new HashSet<>();
-
         int count = 0;
+
         for (ClothingAssignment assignment : expiredAssignments) {
+            Long assignmentId = assignment.getId();
+
             assignment.setStatus(AssignmentStatus.EXPIRED);
 
-            // If the assignment was never issued to the employee, mark it as eligible for compensation
-            if (!Boolean.TRUE.equals(assignment.getIssuedToEmployee())) {
+            // 👉 Identyfikatory do sprawdzenia unikalności kompensaty
+            Long employeeId = assignment.getEmployee().getId();
+            Long clothingTypeId = assignment.getClothingType().getId();
+            LocalDate periodStart = assignment.getAssignmentDate();
+            LocalDate periodEnd = assignment.getExpiryDate();
+
+            long existing = clothingCompensationRepository.countByUniqueAssignment(
+                    employeeId, clothingTypeId, periodStart, periodEnd
+            );
+
+            if (!Boolean.TRUE.equals(assignment.getIssuedToEmployee())
+                    && !Boolean.TRUE.equals(assignment.getEligibleForCompensation())
+                    && existing == 0) {
+
                 assignment.setEligibleForCompensation(true);
-                // Add employee ID to the set of affected employees
-                affectedEmployeeIds.add(assignment.getEmployee().getId());
+                affectedEmployeeIds.add(employeeId);
+                System.out.println("✅ [expire-assignments] OK -> assignmentId=" + assignmentId + ", employee=" + employeeId + ", type=" + clothingTypeId);
+            } else {
+                System.out.println("⚠️ [expire-assignments] SKIP -> assignmentId=" + assignmentId + ", existingCompensations=" + existing);
             }
 
             assignmentRepository.save(assignment);
             count++;
         }
 
-        // After marking assignments as eligible for compensation, automatically create compensation records
-        if (count > 0) {
-            int compensationsCreated = clothingCompensationService.createCompensationsForEligibleAssignments();
-            System.out.println("Created " + compensationsCreated + " compensation records for eligible assignments");
-
-            // Create new assignments for the next period for each affected employee
-            for (Long employeeId : affectedEmployeeIds) {
-                int newAssignmentsCreated = getEmployeeService().ensureClothingAssignmentsForEmployee(employeeId);
-                System.out.println("Created " + newAssignmentsCreated + " new assignments for employee ID " + employeeId);
-            }
-        }
-
+        System.out.println("✅ [expire-assignments] Zakończono. Zaktualizowano " + count + " przydziałów.");
         return count;
     }
 
     @Override
     public List<ClothingAssignmentDTO> getAssignmentsEligibleForCompensation() {
         List<ClothingAssignment> assignments = assignmentRepository.findByEligibleForCompensationTrue();
-        return ClothingAssignmentDTO.fromEntities(assignments);
+        return ClothingAssignmentDTO.fromEntities(assignments, clothingCompensationRepository);
     }
 
     @Override
@@ -335,7 +344,7 @@ public class ClothingAssignmentServiceImpl implements ClothingAssignmentService 
         assignment.setStatus(AssignmentStatus.COMPENSATED);
         assignment.setEligibleForCompensation(false);
 
-        return ClothingAssignmentDTO.fromEntity(assignmentRepository.save(assignment));
+        return ClothingAssignmentDTO.fromEntity(assignmentRepository.save(assignment), clothingCompensationRepository);
     }
 
     private void validateStatusTransition(AssignmentStatus currentStatus, AssignmentStatus newStatus) {

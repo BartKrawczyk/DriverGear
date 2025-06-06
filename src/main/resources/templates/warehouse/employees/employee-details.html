@@ -85,6 +85,7 @@
                             <td th:text="${entitlement.issuedQuantity}">1</td>
                             <td th:text="${entitlement.pendingQuantity}">1</td>
                             <td th:text="${entitlement.eligibleForCompensation == true ? #numbers.formatDecimal(entitlement.compensationValue, 1, 2) + ' zł' : '-'}">40.00 zł</td>
+<!--                            <td th:text="${assignment.pendingCompensationAmount != null ? #numbers.formatCurrency(assignment.pendingCompensationAmount) : '-'}"></td>-->
                             <td th:text="${entitlement.lastIssuedDate != null ? #temporals.format(entitlement.lastIssuedDate, 'dd.MM.yyyy') : '-'}">01.01.2023</td>
                             <td th:text="${entitlement.nextRenewalDate != null ? #temporals.format(entitlement.nextRenewalDate, 'dd.MM.yyyy') : '-'}">01.01.2024</td>
                             <td th:with="stockQty=${stockQuantities.get(entitlement.clothingTypeId)}">

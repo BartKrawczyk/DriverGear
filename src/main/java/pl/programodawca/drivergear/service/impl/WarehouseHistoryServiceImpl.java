@@ -45,8 +45,8 @@ public class WarehouseHistoryServiceImpl implements WarehouseHistoryService {
                 endDate,
                 pageable
         );
-        
-        return assignmentsPage.map(ClothingAssignmentDTO::fromEntity);
+
+        return assignmentsPage.map(a -> ClothingAssignmentDTO.fromEntity(a, clothingCompensationRepository));
     }
 
     @Override

@@ -7,8 +7,12 @@ import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 import pl.programodawca.drivergear.model.AssignmentStatus;
 import pl.programodawca.drivergear.model.ClothingAssignment;
+import pl.programodawca.drivergear.model.ClothingCompensation;
+import pl.programodawca.drivergear.model.CompensationStatus;
+import pl.programodawca.drivergear.repository.ClothingCompensationRepository;
 
 import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
@@ -42,26 +46,29 @@ public class ClothingAssignmentDTO {
     private LocalDate issuedDate;
     private Boolean eligibleForCompensation;
     private String employeeNumber;
+    private BigDecimal pendingCompensationAmount; // może być null
     private String notes;
 
-    public static ClothingAssignmentDTO fromEntity(ClothingAssignment assignment) {
+    public static ClothingAssignmentDTO fromEntity(ClothingAssignment assignment,
+                                                   ClothingCompensationRepository compensationRepository) {
         if (assignment == null) {
             return null;
         }
+
+        BigDecimal pendingAmount = compensationRepository
+                .findByClothingAssignmentId(assignment.getId()).stream()
+                .filter(c -> c.getStatus() == CompensationStatus.PENDING)
+                .map(ClothingCompensation::getAmount)
+                .findFirst()
+                .orElse(null);
 
         return ClothingAssignmentDTO.builder()
                 .id(assignment.getId())
                 .employeeId(assignment.getEmployee().getId())
                 .employeeName(assignment.getEmployee().getFullName())
                 .positionClothingAllowanceId(assignment.getPositionClothingAllowance().getId())
-                // Get the clothing type name directly from the assignment's clothingType
-                .clothingTypeName(assignment.getClothingType() != null ? 
-                        assignment.getClothingType().getName() : 
-                        "Brak typu odzieży")
-                // Get the clothing type ID directly from the assignment's clothingType
-                .clothingTypeId(assignment.getClothingType() != null ? 
-                        assignment.getClothingType().getId() : 
-                        null)
+                .clothingTypeName(assignment.getClothingType() != null ? assignment.getClothingType().getName() : "Brak typu odzieży")
+                .clothingTypeId(assignment.getClothingType() != null ? assignment.getClothingType().getId() : null)
                 .positionName(assignment.getPositionClothingAllowance().getPosition().getName())
                 .departmentName(assignment.getPositionClothingAllowance().getDepartment().getName())
                 .assignmentDate(assignment.getAssignmentDate())
@@ -74,15 +81,17 @@ public class ClothingAssignmentDTO {
                 .eligibleForCompensation(assignment.getEligibleForCompensation())
                 .employeeNumber(assignment.getEmployee().getEmployeeNumber())
                 .notes(assignment.getNotes())
+                .pendingCompensationAmount(pendingAmount)
                 .build();
     }
 
-    public static List<ClothingAssignmentDTO> fromEntities(List<ClothingAssignment> assignments) {
+    public static List<ClothingAssignmentDTO> fromEntities(List<ClothingAssignment> assignments,
+                                                          ClothingCompensationRepository compensationRepository) {
         if (assignments == null) {
             return Collections.emptyList();
         }
         return assignments.stream()
-                .map(ClothingAssignmentDTO::fromEntity)
+                .map(a -> fromEntity(a, compensationRepository))
                 .collect(Collectors.toList());
     }
 
