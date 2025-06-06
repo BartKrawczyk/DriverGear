@@ -35,6 +35,29 @@ public interface ClothingCompensationRepository extends JpaRepository<ClothingCo
     @Query("SELECT c FROM ClothingCompensation c WHERE c.clothingAssignment.positionClothingAllowance.position.id = :positionId")
     List<ClothingCompensation> findByPositionId(Long positionId);
 
+    boolean existsByClothingAssignmentId(Long clothingAssignmentId);
+
+    @Query("SELECT COUNT(c) FROM ClothingCompensation c WHERE c.clothingAssignment.id = :assignmentId")
+    long countByClothingAssignmentId(@Param("assignmentId") Long assignmentId);
+
+
+
+    @Query("SELECT COUNT(c) FROM ClothingCompensation c " +
+            "WHERE c.employee.id = :employeeId " +
+            "AND c.clothingAssignment.clothingType.id = :clothingTypeId " +
+            "AND c.periodStart = :periodStart " +
+            "AND c.periodEnd = :periodEnd")
+    long countByUniqueAssignment(@Param("employeeId") Long employeeId,
+                                 @Param("clothingTypeId") Long clothingTypeId,
+                                 @Param("periodStart") LocalDate periodStart,
+                                 @Param("periodEnd") LocalDate periodEnd);
+
+    @Query("SELECT COUNT(c) FROM ClothingCompensation c " +
+            "WHERE c.employee.id = :employeeId " +
+            "AND c.clothingAssignment.clothingType.id = :clothingTypeId")
+    long countByEmployeeAndClothingType(@Param("employeeId") Long employeeId,
+                                        @Param("clothingTypeId") Long clothingTypeId);
+
     // Find all paid compensations with pagination and filtering
     @Query("SELECT c FROM ClothingCompensation c " +
            "WHERE c.status = pl.programodawca.drivergear.model.CompensationStatus.PAID " +

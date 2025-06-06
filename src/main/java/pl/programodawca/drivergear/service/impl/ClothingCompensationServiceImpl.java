@@ -273,7 +273,6 @@ public class ClothingCompensationServiceImpl implements ClothingCompensationServ
     public int createCompensationsForEligibleAssignments() {
         LocalDate today = LocalDate.now();
 
-        // Pobierz wszystkie przeterminowane i niekompensowane przydziały
         List<ClothingAssignment> assignments = assignmentRepository.findAll().stream()
                 .filter(a -> a.getExpiryDate() != null)
                 .filter(a -> a.getExpiryDate().isBefore(today))
@@ -286,31 +285,65 @@ public class ClothingCompensationServiceImpl implements ClothingCompensationServ
 
         for (ClothingAssignment assignment : assignments) {
             try {
-                // Utwórz kompensację
+                Long employeeId = assignment.getEmployee().getId();
+                Long clothingTypeId = assignment.getClothingType().getId();
+                LocalDate periodStart = assignment.getAssignmentDate();
+                LocalDate periodEnd = assignment.getExpiryDate();
+
+                long count = compensationRepository.countByEmployeeAndClothingType(employeeId, clothingTypeId);
+                if (count > 0) {
+                    System.out.println("⛔ Pomijam – kompensata już istnieje dla employee=" + employeeId + " typ=" + clothingTypeId);
+                    continue;
+                }
+
                 ClothingCompensation compensation = new ClothingCompensation();
                 compensation.setEmployee(assignment.getEmployee());
                 compensation.setClothingAssignment(assignment);
 
-                // Oblicz kwotę – z allowance przypisanego do przydziału
                 BigDecimal compensationAmount = assignment.getPositionClothingAllowance().getClothingItems().stream()
-                        .filter(item -> item.getClothingType().getId().equals(assignment.getClothingType().getId()))
+                        .filter(item -> item.getClothingType().getId().equals(clothingTypeId))
                         .map(item -> item.getCompensationAmount())
                         .reduce(BigDecimal.ZERO, BigDecimal::add);
 
                 compensation.setAmount(compensationAmount);
-                compensation.setPeriodStart(assignment.getAssignmentDate());
-                compensation.setPeriodEnd(assignment.getExpiryDate());
+                compensation.setPeriodStart(periodStart);
+                compensation.setPeriodEnd(periodEnd);
                 compensation.setStatus(CompensationStatus.PENDING);
 
                 compensationRepository.save(compensation);
 
-                // Oznacz przydział jako COMPENSATED
                 assignment.setStatus(AssignmentStatus.COMPENSATED);
+                assignment.setEligibleForCompensation(false);
                 assignmentRepository.save(assignment);
+
+                // Create a new assignment for the next period
+                LocalDate now = LocalDate.now();
+                ClothingAssignment newAssignment = new ClothingAssignment();
+                newAssignment.setEmployee(assignment.getEmployee());
+                newAssignment.setPositionClothingAllowance(assignment.getPositionClothingAllowance());
+                newAssignment.setClothingType(assignment.getClothingType());
+                newAssignment.setAssignmentDate(now);
+
+                // Get validity period from the same source as the original assignment
+                int validityPeriod = assignment.getPositionClothingAllowance().getClothingItems().stream()
+                        .filter(item -> item.getClothingType().getId().equals(assignment.getClothingType().getId()))
+                        .map(PositionClothingItem::getValidityPeriod)
+                        .findFirst()
+                        .orElse(12);
+
+                newAssignment.setExpiryDate(now.plusMonths(validityPeriod));
+                newAssignment.setStatus(AssignmentStatus.PENDING);
+                newAssignment.setSize(assignment.getSize());
+                newAssignment.setQuantity(assignment.getQuantity());
+                newAssignment.setIssuedToEmployee(false);
+                newAssignment.setEligibleForCompensation(false);
+                newAssignment.setNotes("Automatically created after compensation for previous assignment ID: " + assignment.getId());
+
+                assignmentRepository.save(newAssignment);
 
                 createdCount++;
             } catch (Exception e) {
-                System.err.println("Error creating compensation for assignment ID=" + assignment.getId() + ": " + e.getMessage());
+                System.err.println("❌ Błąd podczas tworzenia kompensaty dla przydziału ID=" + assignment.getId() + ": " + e.getMessage());
             }
         }
 
