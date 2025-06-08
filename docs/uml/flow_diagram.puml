@@ -1,0 +1,19 @@
+
+@startuml
+actor User
+participant "Thymeleaf View" as View
+participant "EmployeeController" as Controller
+participant "EmployeeServiceImpl" as Service
+participant "EmployeeRepository" as Repository
+database "MySQL" as DB
+
+User -> Controller : GET /employees/{id}
+Controller -> Service : getEmployeeById(id)
+Service -> Repository : findById(id)
+Repository -> DB : SQL SELECT * FROM employees WHERE id=?
+DB --> Repository : employee entity
+Repository --> Service : Employee
+Service --> Controller : EmployeeDTO
+Controller -> View : return "employee/details"
+View --> User : Rendered HTML page
+@enduml

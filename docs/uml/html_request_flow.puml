@@ -1,0 +1,89 @@
+@startuml "Driver Gear - HTTP Request Flow: /warehouse/employees/{id}"
+
+!define RECTANGLE class
+skinparam sequenceMessageAlign center
+skinparam sequenceParticipant underline
+skinparam maxMessageSize 160
+skinparam SequenceBoxBackgroundColor #FAFAFA
+skinparam SequenceBoxBorderColor #999999
+
+actor User
+participant "Browser" as Browser
+participant "WarehouseEmployeeController" as Controller
+participant "EmployeeService" as EmployeeService
+participant "EmployeeEntitlementService" as EntitlementService
+participant "ClothingAssignmentService" as AssignmentService
+participant "ClothingCompensationService" as CompensationService
+participant "ClothingTypeRepository" as TypeRepository
+participant "WarehouseInventoryRepository" as InventoryRepository
+database "Database" as DB
+participant "employee-details.html\n(Thymeleaf View)" as View
+
+== HTTP Request Flow for /warehouse/employees/{id} ==
+
+User -> Browser: Click on employee details
+Browser -> Controller: GET /warehouse/employees/{id}
+activate Controller
+
+Controller -> EmployeeService: findById(id)
+activate EmployeeService
+EmployeeService -> DB: Query employee data
+DB --> EmployeeService: Employee entity
+EmployeeService -> EmployeeService: Convert to EmployeeDTO
+EmployeeService --> Controller: EmployeeDTO
+deactivate EmployeeService
+
+Controller -> EntitlementService: calculateCurrentEntitlement(id)
+activate EntitlementService
+EntitlementService -> EmployeeService: findById(id)
+EntitlementService -> AssignmentService: getAssignmentsByEmployeeId(id)
+EntitlementService -> EntitlementService: Calculate entitlements
+EntitlementService --> Controller: EmployeeEntitlementDTO
+deactivate EntitlementService
+
+loop For each clothing type entitlement
+  Controller -> TypeRepository: findById(entitlement.getClothingTypeId())
+  TypeRepository --> Controller: ClothingType
+
+  Controller -> InventoryRepository: findByClothingType(clothingType)
+  InventoryRepository --> Controller: Optional<WarehouseInventory>
+
+  Controller -> Controller: Add stock quantity to map
+end
+
+Controller -> AssignmentService: getAssignmentsByEmployeeId(id)
+activate AssignmentService
+AssignmentService -> DB: Query assignments
+DB --> AssignmentService: List of assignments
+AssignmentService --> Controller: List<ClothingAssignmentDTO>
+deactivate AssignmentService
+
+Controller -> Controller: Filter for pending assignments
+
+Controller -> Controller: Filter for issued items
+
+Controller -> CompensationService: calculateTotalPendingCompensations(id)
+activate CompensationService
+CompensationService -> DB: Query pending compensations
+DB --> CompensationService: Compensation data
+CompensationService --> Controller: BigDecimal totalPendingCompensation
+deactivate CompensationService
+
+Controller -> CompensationService: getEmployeeCompensationHistory(id)
+activate CompensationService
+CompensationService -> DB: Query compensation history
+DB --> CompensationService: Compensation history data
+CompensationService --> Controller: List<ClothingCompensationDTO>
+deactivate CompensationService
+
+Controller -> Controller: Filter for paid compensations
+
+Controller -> Controller: Calculate total paid compensation
+
+Controller -> View: Return "warehouse/employees/employee-details" with model attributes
+deactivate Controller
+
+View -> Browser: Render HTML with Thymeleaf
+Browser -> User: Display employee details page
+
+@enduml

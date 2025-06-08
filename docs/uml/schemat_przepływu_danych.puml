@@ -1,0 +1,46 @@
+@startuml "Driver Gear – Data Flow: Request to View"
+
+!define RECTANGLE class
+skinparam sequenceMessageAlign center
+skinparam sequenceParticipant underline
+skinparam maxMessageSize 160
+skinparam SequenceBoxBackgroundColor #FAFAFA
+skinparam SequenceBoxBorderColor #999999
+
+actor User
+
+participant "EmployeeController\n(@Controller)" as Controller
+participant "EmployeeService\n(Service)" as Service
+participant "EmployeeRepository\n(JPA Repository)" as Repository
+participant "Employee\n(@Entity)" as Entity
+participant "EmployeeDTO\n(Data Transfer Object)" as DTO
+participant "Thymeleaf View\n(employee-details.html)" as View
+
+== Żądanie o szczegóły pracownika ==
+
+User -> Controller : GET /warehouse/employees/{id}
+activate Controller
+
+Controller -> Service : findById(id)
+activate Service
+
+Service -> Repository : findById(id)
+activate Repository
+
+Repository --> Service : Employee
+deactivate Repository
+
+Service -> DTO : EmployeeDTO.fromEntity(employee)
+activate DTO
+DTO --> Service : EmployeeDTO
+deactivate DTO
+
+Service --> Controller : EmployeeDTO
+deactivate Service
+
+Controller -> View : render with model.addAttribute("employee", dto)
+deactivate Controller
+
+View --> User : Rendered HTML with employee data
+
+@enduml

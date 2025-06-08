@@ -31,7 +31,7 @@ public class SecurityConfig {
         http.userDetailsService(userDetailsService)
                 .authorizeRequests()
                 .antMatchers("/css/**", "/js/**", "/images/**", "/login", "/").permitAll()
-                .antMatchers("/dev/**").permitAll() // tylko na development by móc puścić curla
+                .antMatchers("/dev/**").permitAll() // tylko na development by móc puścić curle
                 .antMatchers("/admin/**").hasRole("ADMIN")
                 .antMatchers("/user/**").hasAnyRole("USER", "ADMIN")
                 .anyRequest().authenticated()

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="components :: site-head">
-    <title>Paid Compensation History</title>
+    <title>Historia ekwiwalentów</title>
 </head>
 <body class="d-flex flex-column min-vh-100">
 <nav th:replace="components :: navigation"></nav>
@@ -10,35 +10,35 @@
     <div th:replace="components :: messages"></div>
 
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Paid Compensation History</h1>
+        <h1>Historia ekwiwalentów</h1>
         <a th:href="@{/warehouse}" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> Back to Dashboard
+            <i class="bi bi-arrow-left"></i> Powrót do panelu
         </a>
     </div>
 
     <!-- Search Filters -->
     <div class="card mb-4">
         <div class="card-header bg-light">
-            <h5 class="mb-0">Search Filters</h5>
+            <h5 class="mb-0">Filtry wyszukiwania</h5>
         </div>
         <div class="card-body">
             <form th:action="@{/warehouse/history/paid-compensations}" method="get" class="row g-3">
                 <div class="col-md-4">
-                    <label for="firstName" class="form-label">First Name</label>
+                    <label for="firstName" class="form-label">Imię</label>
                     <input type="text" class="form-control" id="firstName" name="firstName" th:value="${firstName}">
                 </div>
                 <div class="col-md-4">
-                    <label for="lastName" class="form-label">Last Name</label>
+                    <label for="lastName" class="form-label">Nazwisko</label>
                     <input type="text" class="form-control" id="lastName" name="lastName" th:value="${lastName}">
                 </div>
                 <div class="col-md-4">
-                    <label for="employeeNumber" class="form-label">Employee Number</label>
+                    <label for="employeeNumber" class="form-label">Numer pracownika</label>
                     <input type="text" class="form-control" id="employeeNumber" name="employeeNumber" th:value="${employeeNumber}">
                 </div>
                 <div class="col-md-4">
-                    <label for="clothingTypeId" class="form-label">Clothing Type</label>
+                    <label for="clothingTypeId" class="form-label">Typ ubrania</label>
                     <select class="form-select" id="clothingTypeId" name="clothingTypeId">
-                        <option value="">All Clothing Types</option>
+                        <option value="">Wszystkie typy ubrań</option>
                         <option th:each="type : ${clothingTypes}"
                                 th:value="${type.id}"
                                 th:text="${type.name}"
@@ -47,19 +47,19 @@
                     </select>
                 </div>
                 <div class="col-md-4">
-                    <label for="startDate" class="form-label">Payment Date From</label>
+                    <label for="startDate" class="form-label">Od daty</label>
                     <input type="date" class="form-control" id="startDate" name="startDate" th:value="${startDate}">
                 </div>
                 <div class="col-md-4">
-                    <label for="endDate" class="form-label">Payment Date To</label>
+                    <label for="endDate" class="form-label">Do daty</label>
                     <input type="date" class="form-control" id="endDate" name="endDate" th:value="${endDate}">
                 </div>
                 <div class="col-12 text-end">
                     <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-search"></i> Search
+                        <i class="bi bi-search"></i> Szukaj
                     </button>
                     <a th:href="@{/warehouse/history/paid-compensations}" class="btn btn-secondary">
-                        <i class="bi bi-x-circle"></i> Clear Filters
+                        <i class="bi bi-x-circle"></i> Wyczyść filtry
                     </a>
                 </div>
             </form>
