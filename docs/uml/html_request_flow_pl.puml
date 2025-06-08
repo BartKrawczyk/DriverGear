@@ -1,0 +1,87 @@
+@startuml "Driver Gear – Przepływ żądania HTTP: /warehouse/employees/{id}"
+
+!define RECTANGLE class
+skinparam sequenceMessageAlign center
+skinparam sequenceParticipant underline
+skinparam maxMessageSize 160
+skinparam SequenceBoxBackgroundColor #FAFAFA
+skinparam SequenceBoxBorderColor #999999
+
+actor Użytkownik
+participant "Przeglądarka" as Browser
+participant "WarehouseEmployeeController" as Kontroler
+participant "EmployeeService" as SerwisPracownika
+participant "EmployeeEntitlementService" as SerwisUprawnień
+participant "ClothingAssignmentService" as SerwisPrzydziałów
+participant "ClothingCompensationService" as SerwisEkwiwalentów
+participant "ClothingTypeRepository" as RepoTypów
+participant "WarehouseInventoryRepository" as RepoMagazyn
+database "Baza danych" as DB
+participant "employee-details.html\n(Widok Thymeleaf)" as Widok
+
+== Przepływ żądania HTTP dla /warehouse/employees/{id} ==
+
+Użytkownik -> Browser: Kliknięcie w szczegóły pracownika
+Browser -> Kontroler: Żądanie GET /warehouse/employees/{id}
+activate Kontroler
+
+Kontroler -> SerwisPracownika: findById(id)
+activate SerwisPracownika
+SerwisPracownika -> DB: Zapytanie o dane pracownika
+DB --> SerwisPracownika: Encja Employee
+SerwisPracownika -> SerwisPracownika: Konwersja do EmployeeDTO
+SerwisPracownika --> Kontroler: Obiekt EmployeeDTO
+deactivate SerwisPracownika
+
+Kontroler -> SerwisUprawnień: calculateCurrentEntitlement(id)
+activate SerwisUprawnień
+SerwisUprawnień -> SerwisPracownika: findById(id)
+SerwisUprawnień -> SerwisPrzydziałów: getAssignmentsByEmployeeId(id)
+SerwisUprawnień -> SerwisUprawnień: Obliczenie uprawnień odzieżowych
+SerwisUprawnień --> Kontroler: EmployeeEntitlementDTO
+deactivate SerwisUprawnień
+
+loop Dla każdego typu odzieży
+  Kontroler -> RepoTypów: findById(entitlement.getClothingTypeId())
+  RepoTypów --> Kontroler: Obiekt ClothingType
+
+  Kontroler -> RepoMagazyn: findByClothingType(clothingType)
+  RepoMagazyn --> Kontroler: WarehouseInventory
+
+  Kontroler -> Kontroler: Dodanie ilości do mapy stanów magazynowych
+end
+
+Kontroler -> SerwisPrzydziałów: getAssignmentsByEmployeeId(id)
+activate SerwisPrzydziałów
+SerwisPrzydziałów -> DB: Zapytanie o przydziały odzieży
+DB --> SerwisPrzydziałów: Lista przydziałów
+SerwisPrzydziałów --> Kontroler: Lista ClothingAssignmentDTO
+deactivate SerwisPrzydziałów
+
+Kontroler -> Kontroler: Filtrowanie przydziałów oczekujących
+Kontroler -> Kontroler: Filtrowanie przydziałów wydanych
+
+Kontroler -> SerwisEkwiwalentów: calculateTotalPendingCompensations(id)
+activate SerwisEkwiwalentów
+SerwisEkwiwalentów -> DB: Zapytanie o oczekujące ekwiwalenty
+DB --> SerwisEkwiwalentów: Dane ekwiwalentów
+SerwisEkwiwalentów --> Kontroler: Łączna kwota oczekujących ekwiwalentów
+deactivate SerwisEkwiwalentów
+
+Kontroler -> SerwisEkwiwalentów: getEmployeeCompensationHistory(id)
+activate SerwisEkwiwalentów
+SerwisEkwiwalentów -> DB: Zapytanie o historię ekwiwalentów
+DB --> SerwisEkwiwalentów: Historia ekwiwalentów
+SerwisEkwiwalentów --> Kontroler: Lista ClothingCompensationDTO
+deactivate SerwisEkwiwalentów
+
+Kontroler -> Kontroler: Filtrowanie wypłaconych ekwiwalentów
+Kontroler -> Kontroler: Obliczenie łącznej kwoty wypłaconej
+
+Kontroler -> Widok: Zwrócenie widoku "employee-details.html" z atrybutami modelu
+deactivate Kontroler
+
+Widok -> Browser: Renderowanie HTML z użyciem Thymeleaf
+Browser -> Użytkownik: Wyświetlenie strony szczegółów pracownika
+
+@enduml

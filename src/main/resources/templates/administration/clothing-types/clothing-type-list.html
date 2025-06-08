@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="components :: site-head">
+  <title>Lista typów odzieży</title>
+</head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="components :: navigation"></nav>
+
+<div class="container">
+  <div th:replace="components :: messages"></div>
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Lista typów odzieży</h1>
+    <div>
+      <form th:action="@{/administration/clothing-types}" method="get" class="d-inline-block me-2">
+        <div class="form-check form-switch ms-3 d-flex align-items-center">
+          <input class="form-check-input" type="checkbox" id="showInactive" name="showInactive"
+                 th:checked="${param.showInactive}" onchange="this.form.submit()">
+          <label class="form-check-label ms-2" for="showInactive">Pokaż nieaktywne typy odzieży</label>
+        </div>
+      </form>
+      <a th:href="@{/administration/clothing-types/new}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Dodaj nowy typ odzieży
+      </a>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-striped table-hover">
+      <thead class="table-dark">
+      <tr>
+        <th>ID</th>
+        <th>Nazwa</th>
+        <th>Kod kreskowy</th>
+        <th>Wartość ekwiwalentu</th>
+        <th>Okres użytkowania</th>
+        <th>Status</th>
+        <th>Przydziały</th>
+        <th>Ekwiwalenty</th>
+        <th>Akcje</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="clothingType : ${clothingTypes}"
+          th:class="${!clothingType.active} ? 'table-secondary' : ''">
+        <td th:text="${clothingType.id}">1</td>
+        <td th:text="${clothingType.name}">Koszula</td>
+        <td th:text="${clothingType.barcode}">ABC123</td>
+        <td th:text="${#numbers.formatDecimal(clothingType.compensationValue, 1, 2) + ' zł'}">100.00 zł</td>
+        <td th:text="${clothingType.standardLifetimeMonths + ' mies.'}">12 mies.</td>
+        <td>
+          <span th:if="${clothingType.active}" class="badge bg-success">Aktywny</span>
+          <span th:if="${!clothingType.active}" class="badge bg-secondary">Nieaktywny</span>
+        </td>
+        <td th:text="${clothingType.positionAllowancesCount}">5</td>
+        <td th:text="${clothingType.compensationsCount}">2</td>
+        <td>
+          <div class="btn-group" role="group">
+            <a th:href="@{/administration/clothing-types/{id}/edit(id=${clothingType.id})}"
+               class="btn btn-sm btn-warning">
+              <i class="bi bi-pencil"></i> Edytuj
+            </a>
+            <a th:href="@{/administration/clothing-types/{id}/barcode(id=${clothingType.id})}"
+               class="btn btn-sm btn-info">
+              <i class="bi bi-upc-scan"></i> Kod kreskowy
+            </a>
+            <form th:action="@{/administration/clothing-types/{id}(id=${clothingType.id})}"
+                  method="post" class="d-inline"
+                  onsubmit="return confirm('Czy na pewno chcesz usunąć ten typ odzieży?')">
+              <button type="submit" class="btn btn-sm btn-danger">
+                <i class="bi bi-trash"></i> Usuń
+              </button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      <tr th:if="${#lists.isEmpty(clothingTypes)}">
+        <td colspan="9" class="text-center">Brak typów odzieży</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div th:replace="components :: footer"></div>
+<div th:replace="components :: scripts"></div>
+</body>
+</html>

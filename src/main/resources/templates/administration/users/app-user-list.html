@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="components :: site-head">
+    <title>Lista użytkowników</title>
+</head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="components :: navigation"></nav>
+
+<div class="container">
+    <!-- Komunikaty -->
+    <div th:replace="components :: messages"></div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Lista użytkowników</h1>
+        <a th:href="@{/administration/users/new}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Dodaj nowego użytkownika
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Imię</th>
+                <th>Nazwisko</th>
+                <th>Nazwa użytkownika</th>
+                <th>Rola</th>
+                <th>Status</th>
+                <th>Akcje</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="appUser : ${appUsers}">
+                <td th:text="${appUser.id}">1</td>
+                <td th:text="${appUser.firstName}">Imię</td>
+                <td th:text="${appUser.lastName}">Nazwisko</td>
+                <td th:text="${appUser.username}">Username</td>
+                <td>
+                <span class="badge" th:classappend="${appUser.role != null and appUser.role == T(pl.programodawca.drivergear.model.UserRole).ADMIN ? 'bg-danger' : 'bg-primary'}"
+                      th:text="${appUser.role}">ROLE</span>
+                </td>
+                <td>
+                <span class="badge" th:classappend="${appUser.locked ? 'bg-danger' : 'bg-success'}"
+                      th:text="${appUser.locked ? 'Zablokowany' : 'Aktywny'}">Status</span>
+                </td>
+                <td>
+                    <div class="btn-group" role="group">
+                        <a th:href="@{/administration/users/{id}/edit(id=${appUser.id})}"
+                           class="btn btn-sm btn-warning">
+                            <i class="bi bi-pencil"></i> Edytuj
+                        </a>
+                        <a th:href="@{/administration/users/{id}/delete(id=${appUser.id})}"
+                           class="btn btn-sm btn-danger"
+                           onclick="return confirm('Czy na pewno chcesz usunąć tego użytkownika?')">
+                            <i class="bi bi-trash"></i> Usuń
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(appUsers)}">
+                <td colspan="7" class="text-center">Brak użytkowników</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div th:replace="components :: footer"></div>
+<div th:replace="components :: scripts"></div>
+</body>
+</html>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="components :: site-head">
+  <title th:text="${isNew} ? 'Dodaj nowy przydział odzieżowy' : 'Edycja przydziału odzieżowego'">Przydział odzieżowy</title>
+</head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="components :: navigation"></nav>
+
+<div class="container">
+  <div th:replace="components :: messages"></div>
+
+  <h1 class="mb-4" th:text="${title}">Przydział odzieżowy</h1>
+
+  <form th:action="@{${isNew ? '/administration/clothing-allowances/new' : '/administration/clothing-allowances/' + allowanceDTO.id + '/edit'}}"
+        method="post"
+        th:object="${allowanceDTO}"
+        class="needs-validation"
+        novalidate>
+
+    <div class="row">
+      <div class="col-md-6">
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="mb-0">Dane podstawowe</h5>
+          </div>
+          <div class="card-body">
+            <div class="mb-3" th:if="${isNew}">
+              <label for="employeeId" class="form-label">Pracownik:</label>
+              <select class="form-select"
+                      id="employeeId"
+                      th:field="*{employeeId}"
+                      th:classappend="${#fields.hasErrors('employeeId')} ? 'is-invalid'"
+                      required>
+                <option value="">-- Wybierz pracownika --</option>
+                <option th:each="employee : ${employees}"
+                        th:value="${employee.id}"
+                        th:text="${employee.fullName}">
+                </option>
+              </select>
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('employeeId')}"
+                   th:errors="*{employeeId}">Błąd pracownika</div>
+            </div>
+
+            <div class="mb-3" th:if="${!isNew}">
+              <label class="form-label">Pracownik:</label>
+              <p class="form-control-plaintext" th:text="*{employeeName}">Jan Kowalski</p>
+              <input type="hidden" th:field="*{employeeId}">
+            </div>
+
+            <div class="mb-3" th:if="${isNew}">
+              <label for="positionId" class="form-label">Stanowisko:</label>
+              <select class="form-select"
+                      id="positionId"
+                      th:field="*{positionId}"
+                      th:classappend="${#fields.hasErrors('positionId')} ? 'is-invalid'"
+                      required>
+                <option value="">-- Wybierz stanowisko --</option>
+                <option th:each="position : ${positions}"
+                        th:value="${position.id}"
+                        th:text="${position.name}">
+                </option>
+              </select>
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('positionId')}"
+                   th:errors="*{positionId}">Błąd stanowiska</div>
+            </div>
+
+            <div class="mb-3" th:if="${!isNew}">
+              <label class="form-label">Stanowisko:</label>
+              <p class="form-control-plaintext" th:text="*{positionName}">Kierowca</p>
+              <input type="hidden" th:field="*{positionId}">
+            </div>
+
+            <div class="mb-3">
+              <label for="startDate" class="form-label">Data rozpoczęcia:</label>
+              <input type="date"
+                     class="form-control"
+                     id="startDate"
+                     th:field="*{startDate}"
+                     th:classappend="${#fields.hasErrors('startDate')} ? 'is-invalid'"
+                     required>
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('startDate')}"
+                   th:errors="*{startDate}">Błąd daty rozpoczęcia</div>
+            </div>
+
+            <div class="mb-3">
+              <label for="endDate" class="form-label">Data zakończenia:</label>
+              <input type="date"
+                     class="form-control"
+                     id="endDate"
+                     th:field="*{endDate}"
+                     th:classappend="${#fields.hasErrors('endDate')} ? 'is-invalid'"
+                     required>
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('endDate')}"
+                   th:errors="*{endDate}">Błąd daty zakończenia</div>
+            </div>
+
+            <div class="mb-3">
+              <label for="notes" class="form-label">Uwagi:</label>
+              <textarea class="form-control"
+                        id="notes"
+                        th:field="*{notes}"
+                        th:classappend="${#fields.hasErrors('notes')} ? 'is-invalid'"
+                        rows="3"></textarea>
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('notes')}"
+                   th:errors="*{notes}">Błąd uwag</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="mb-0">Status</h5>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label for="status" class="form-label">Status przydziału:</label>
+              <select class="form-select"
+                      id="status"
+                      th:field="*{status}"
+                      th:classappend="${#fields.hasErrors('status')} ? 'is-invalid'"
+                      required>
+                <option th:each="statusOpt : ${statuses}"
+                        th:value="${statusOpt}"
+                        th:text="${statusOpt.displayName}">
+                </option>
+              </select>
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('status')}"
+                   th:errors="*{status}">Błąd statusu</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mb-4" th:if="${!isNew}">
+          <div class="card-header">
+            <h5 class="mb-0">Statystyki</h5>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="form-label">Liczba ekwiwalentów:</label>
+              <p class="form-control-plaintext" th:text="*{compensationsCount}">0</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-save"></i> Zapisz
+      </button>
+      <a th:href="@{/administration/clothing-allowances}" class="btn btn-secondary">
+        <i class="bi bi-x-circle"></i> Anuluj
+      </a>
+    </div>
+  </form>
+</div>
+
+<div th:replace="components :: footer"></div>
+<div th:replace="components :: scripts"></div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Sprawdź czy ta data jest po dacie rozpoczęcia
+    const startDateInput = document.getElementById('startDate');
+    const endDateInput = document.getElementById('endDate');
+
+    function validateDates() {
+      const startDate = new Date(startDateInput.value);
+      const endDate = new Date(endDateInput.value);
+
+      if (startDate > endDate) {
+        endDateInput.setCustomValidity('Data zakończenia musi być późniejsza niż data rozpoczęcia');
+      } else {
+        endDateInput.setCustomValidity('');
+      }
+    }
+
+    startDateInput.addEventListener('change', validateDates);
+    endDateInput.addEventListener('change', validateDates);
+
+    // wstępna walidacja
+    validateDates();
+  });
+</script>
+</body>
+</html>

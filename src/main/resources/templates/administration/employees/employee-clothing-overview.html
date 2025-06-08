@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="components :: site-head">
+  <title>Przegląd odzieży pracownika</title>
+</head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="components :: navigation"></nav>
+
+<div class="container mt-4">
+  <div th:replace="components :: messages"></div>
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Przegląd odzieży pracownika</h1>
+    <a th:href="@{/administration/employees}" class="btn btn-secondary">
+      <i class="bi bi-arrow-left"></i> Powrót do listy pracowników
+    </a>
+  </div>
+
+  <!-- Sekcja informacji o pracowniku -->
+  <div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+      <h5 class="mb-0">Informacje o pracowniku</h5>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-6">
+          <p><strong>Imię i nazwisko:</strong> <span th:text="${employee.fullName}">Jan Kowalski</span></p>
+          <p><strong>Dział:</strong> <span th:text="${employee.departmentName}">Transport</span></p>
+        </div>
+        <div class="col-md-6">
+          <p><strong>Stanowisko:</strong> <span th:text="${employee.positionName}">Kierowca</span></p>
+          <p><strong>Status:</strong> 
+            <span th:if="${employee.active}" class="badge bg-success">Aktywny</span>
+            <span th:unless="${employee.active}" class="badge bg-danger">Nieaktywny</span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sekcja przydziału na podstawie Stanowiska (Position) -->
+  <div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+      <h5 class="mb-0">Przydział odzieży na podstawie stanowiska</h5>
+    </div>
+    <div class="card-body">
+      <div th:if="${positionAllowances.isEmpty()}" class="alert alert-info">
+        Brak przydziałów odzieży dla stanowiska pracownika.
+      </div>
+      <div th:each="allowance : ${positionAllowances}" class="mb-4">
+        <h6 th:text="${'Przydział: ' + allowance.positionName}">Przydział: Kierowca</h6>
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered">
+            <thead class="table-light">
+              <tr>
+                <th>Nazwa</th>
+                <th>Ilość</th>
+                <th>Kod kreskowy</th>
+                <th>Okres ważności (miesiące)</th>
+                <th>Obowiązkowy</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="item : ${allowance.clothingItems}">
+                <td th:text="${item.clothingTypeName}">Kurtka</td>
+                <td th:text="${item.quantity}">1</td>
+                <td th:text="${item.barcode}">ABC123</td>
+                <td th:text="${item.validityPeriod}">12</td>
+                <td>
+                  <span th:if="${item.mandatory}" class="badge bg-success">Tak</span>
+                  <span th:unless="${item.mandatory}" class="badge bg-secondary">Nie</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="row">
+          <div class="col-md-6">
+            <p><strong>Status:</strong> 
+              <span th:if="${allowance.active}" class="badge bg-success">Aktywny</span>
+              <span th:unless="${allowance.active}" class="badge bg-danger">Nieaktywny</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sekcja przydziałów odzieży pracownika -->
+  <div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+      <h5 class="mb-0">Przydziały odzieży pracownika</h5>
+    </div>
+    <div class="card-body">
+      <div th:if="${employeeAllowances.isEmpty()}" class="alert alert-info">
+        Pracownik nie ma przydzielonej odzieży.
+      </div>
+      <div th:each="allowance : ${employeeAllowances}" class="mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 th:text="${'Przydział: ' + allowance.positionName}">Przydział: Kierowca</h6>
+          <span th:class="${'badge ' + (allowance.status == T(pl.programodawca.drivergear.model.AllowanceStatus).ACTIVE ? 'bg-success' : (allowance.status == T(pl.programodawca.drivergear.model.AllowanceStatus).EXPIRED ? 'bg-warning' : 'bg-danger'))}"
+                th:text="${allowance.status}">ACTIVE</span>
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-4">
+            <p><strong>Data rozpoczęcia:</strong> <span th:text="${#temporals.format(allowance.startDate, 'dd.MM.yyyy')}">01.01.2023</span></p>
+          </div>
+          <div class="col-md-4">
+            <p><strong>Data zakończenia:</strong> <span th:text="${#temporals.format(allowance.endDate, 'dd.MM.yyyy')}">31.12.2023</span></p>
+          </div>
+          <div class="col-md-4">
+            <p><strong>Uwagi:</strong> <span th:text="${allowance.notes ?: 'Brak'}">Brak</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sekcja wydanych elementów odzieży -->
+  <div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+      <h5 class="mb-0">Wydane elementy odzieży</h5>
+    </div>
+    <div class="card-body">
+      <div th:if="${issuedItems.isEmpty()}" class="alert alert-info">
+        Brak wydanych elementów odzieży.
+      </div>
+      <div th:unless="${issuedItems.isEmpty()}" class="table-responsive">
+        <table class="table table-striped table-bordered">
+          <thead class="table-light">
+            <tr>
+              <th>Nazwa</th>
+              <th>Data wydania</th>
+              <th>Ilość</th>
+              <th>Status zwrotu</th>
+              <th>Kod kreskowy</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="item : ${issuedItems}">
+              <td th:text="${item.positionClothingAllowanceName}">Kurtka</td>
+              <td th:text="${#temporals.format(item.issuedDate, 'dd.MM.yyyy')}">01.01.2023</td>
+              <td th:text="${item.quantity}">1</td>
+              <td>
+                <span th:if="${item.status == T(pl.programodawca.drivergear.model.AssignmentStatus).RETURNED}" class="badge bg-success">Zwrócono</span>
+                <span th:unless="${item.status == T(pl.programodawca.drivergear.model.AssignmentStatus).RETURNED}" class="badge bg-warning">Nie zwrócono</span>
+              </td>
+              <td th:text="${item.size ?: 'N/D'}">ABC123</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sekcja przeglądu ekwiwalentów -->
+  <div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+      <h5 class="mb-0">Przegląd ekwiwalentów</h5>
+    </div>
+    <div class="card-body">
+      <div class="row mb-4">
+        <div class="col-md-4">
+          <div class="card h-100">
+            <div class="card-body text-center">
+              <h6 class="card-title">Wypłacony ekwiwalent</h6>
+              <p class="display-6" th:text="${#numbers.formatDecimal(totalCompensationPaid, 1, 2) + ' zł'}">0.00 zł</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card h-100">
+            <div class="card-body text-center">
+              <h6 class="card-title">Ostatnia data wypłaty</h6>
+              <p class="display-6" th:text="${mostRecentCompensationDate != null ? #temporals.format(mostRecentCompensationDate, 'dd.MM.yyyy') : 'Brak'}">Brak</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card h-100">
+            <div class="card-body text-center">
+              <h6 class="card-title">Oczekujący ekwiwalent</h6>
+              <p class="display-6" th:text="${#numbers.formatDecimal(totalPendingCompensation, 1, 2) + ' zł'}">0.00 zł</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h6 class="mb-3">Historia ekwiwalentów</h6>
+      <div th:if="${compensationHistory.isEmpty()}" class="alert alert-info">
+        Brak historii ekwiwalentów.
+      </div>
+      <div th:unless="${compensationHistory.isEmpty()}" class="table-responsive">
+        <table class="table table-striped table-bordered">
+          <thead class="table-light">
+            <tr>
+              <th>Element</th>
+              <th>Kwota</th>
+              <th>Okres od</th>
+              <th>Okres do</th>
+              <th>Status</th>
+              <th>Data wypłaty</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="comp : ${compensationHistory}">
+              <td th:text="${comp.clothingAssignmentName}">Kurtka</td>
+              <td th:text="${#numbers.formatDecimal(comp.amount, 1, 2) + ' zł'}">100.00 zł</td>
+              <td th:text="${#temporals.format(comp.periodStart, 'dd.MM.yyyy')}">01.01.2023</td>
+              <td th:text="${#temporals.format(comp.periodEnd, 'dd.MM.yyyy')}">31.12.2023</td>
+              <td>
+                <span th:class="${'badge ' + (comp.status == T(pl.programodawca.drivergear.model.CompensationStatus).PAID ? 'bg-success' : (comp.status == T(pl.programodawca.drivergear.model.CompensationStatus).APPROVED ? 'bg-info' : 'bg-warning'))}"
+                      th:text="${comp.status}">PENDING</span>
+              </td>
+              <td th:text="${comp.paymentDate != null ? #temporals.format(comp.paymentDate, 'dd.MM.yyyy') : 'Nie wypłacono'}">Nie wypłacono</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div th:replace="components :: footer"></div>
+<div th:replace="components :: scripts"></div>
+</body>
+</html>

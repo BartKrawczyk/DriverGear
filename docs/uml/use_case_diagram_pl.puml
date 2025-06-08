@@ -1,0 +1,62 @@
+@startuml Diagram przypadków użycia – Driver Gear
+
+' Definicja aktorów
+actor "Magazynier" as WarehouseEmployee
+actor "Administrator" as Admin
+actor "System" as System
+
+' Kontener systemowy
+rectangle "Aplikacja Driver Gear" {
+  ' Przypadki użycia magazyniera
+  usecase "Wydaj odzież pracownikowi" as IssueClothing
+  usecase "Obsłuż wypłatę ekwiwalentu" as ProcessCompensation
+  usecase "Zarządzaj stanem magazynowym" as ManageInventory
+  usecase "Oznacz brak w magazynie" as MarkOutOfStock
+  usecase "Zobacz uprawnienia pracownika" as ViewEntitlements
+  usecase "Wydaj odzież przez kod kreskowy" as IssueByBarcode
+
+  ' Przypadki administratora
+  usecase "Zarządzaj typami odzieży" as ManageClothingTypes
+  usecase "Zarządzaj stanowiskami" as ManagePositions
+  usecase "Przydziel odzież do stanowiska" as AssignWorkwear
+  usecase "Utwórz przydział odzieży" as CreateAllowance
+  usecase "Zarządzaj pracownikami" as ManageEmployees
+  usecase "Konfiguruj ustawienia systemu" as ConfigureSystem
+
+  ' Przypadki automatyczne (System)
+  usecase "Generuj ekwiwalent" as GenerateCompensation
+  usecase "Aktualizuj przeterminowane przydziały" as UpdateExpiredAllowances
+  usecase "Monitoruj cykl życia odzieży" as TrackLifecycle
+}
+
+' Połączenia magazyniera
+WarehouseEmployee --> IssueClothing
+WarehouseEmployee --> ProcessCompensation
+WarehouseEmployee --> ManageInventory
+WarehouseEmployee --> MarkOutOfStock
+WarehouseEmployee --> ViewEntitlements
+WarehouseEmployee --> IssueByBarcode
+
+' Połączenia administratora
+Admin --> ManageClothingTypes
+Admin --> ManagePositions
+Admin --> AssignWorkwear
+Admin --> CreateAllowance
+Admin --> ManageEmployees
+Admin --> ConfigureSystem
+Admin --> ViewEntitlements
+
+' Połączenia systemu
+System --> GenerateCompensation
+System --> UpdateExpiredAllowances
+System --> TrackLifecycle
+
+' Relacje <<include>>
+ManageInventory ..> MarkOutOfStock : <<include>>
+IssueClothing ..> ViewEntitlements : <<include>>
+ProcessCompensation ..> ViewEntitlements : <<include>>
+AssignWorkwear ..> ManageClothingTypes : <<include>>
+CreateAllowance ..> ManageEmployees : <<include>>
+CreateAllowance ..> ManagePositions : <<include>>
+
+@enduml

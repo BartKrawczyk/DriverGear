@@ -1,0 +1,16 @@
+.login-button {
+  width: 75%; /* Skrócenie przycisku o 1/4 */
+  display: block;
+  margin: auto;
+  font-size: .875rem;  /* Czcionka o wielkości 14px */
+  background-color: $blue-dark;  /* Niebieskie tło */
+  color: #FFFFFF;  /* Białe litery */
+  border: none;  /* Bez obramowania */
+  padding: 5px 10px;  /* Odstępy wewnętrzne 5px na górę i dół, 10px na lewo i prawo */
+  border-radius: 5px;  /* Zaokrąglenie rogów przycisku */
+  cursor: pointer;  /* Kursor ręki dla lepszej interaktywności */
+}
+
+.login-button:hover {
+  background-color: #3853b4;
+}

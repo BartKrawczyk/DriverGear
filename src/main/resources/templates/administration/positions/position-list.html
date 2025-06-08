@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="components :: site-head">
+    <title>Lista stanowisk</title>
+</head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="components :: navigation"></nav>
+
+<div class="container">
+    <div th:replace="components :: messages"></div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Lista stanowisk</h1>
+        <div class="d-flex align-items-center">
+            <div class="me-3">
+                <select class="form-select" id="departmentFilter" name="departmentId"
+                        onchange="window.location.href=this.value">
+                    <option value="/administration/positions">Wszystkie działy</option>
+                    <option th:each="dept : ${departments}"
+                            th:value="@{/administration/positions(departmentId=${dept.id})}"
+                            th:text="${dept.name}"
+                            th:selected="${dept.id == selectedDepartmentId}">
+                    </option>
+                </select>
+            </div>
+            <form th:action="@{/administration/positions}" method="get" class="d-inline-block me-2">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="showInactive" name="showInactive"
+                           th:checked="${param.showInactive}" onchange="this.form.submit()">
+                    <label class="form-check-label" for="showInactive">Pokaż nieaktywne stanowiska</label>
+                </div>
+            </form>
+            <a th:href="@{/administration/positions/new}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Dodaj nowe stanowisko
+            </a>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Nazwa</th>
+                <th>Kod</th>
+                <th>Dział</th>
+                <th>Status</th>
+                <th>Opis</th>
+                <th>Akcje</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="position : ${positions}" th:class="${!position.active} ? 'table-secondary' : ''">
+                <td th:text="${position.id}">1</td>
+                <td th:text="${position.name}">Nazwa</td>
+                <td>
+                    <code th:text="${position.code}">KOD</code>
+                </td>
+                <td th:text="${position.departmentName}">Dział</td>
+                <td>
+                    <span th:if="${position.active}" class="badge bg-success">Aktywne</span>
+                    <span th:unless="${position.active}" class="badge bg-secondary">Nieaktywne</span>
+                </td>
+                <td>
+                    <span th:text="${#strings.abbreviate(position.description, 50)}">Opis</span>
+                </td>
+                <td>
+                    <div class="btn-group" role="group">
+                        <a th:href="@{/administration/positions/{id}/edit(id=${position.id})}"
+                           class="btn btn-sm btn-warning">
+                            <i class="bi bi-pencil"></i> Edytuj
+                        </a>
+                        <form th:action="@{/administration/positions/{id}(id=${position.id})}"
+                              method="post" class="d-inline">
+                            <input type="hidden" name="_method" value="DELETE">
+                            <button type="submit" class="btn btn-sm btn-danger"
+                                    onclick="return confirm('Czy na pewno chcesz usunąć to stanowisko?')"
+                                    th:disabled="${not #lists.isEmpty(position.employees)}">
+                                <i class="bi bi-trash"></i> Usuń
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(positions)}">
+                <td colspan="7" class="text-center">Brak stanowisk</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div th:replace="components :: footer"></div>
+<div th:replace="components :: scripts"></div>
+</body>
+</html>
+
+

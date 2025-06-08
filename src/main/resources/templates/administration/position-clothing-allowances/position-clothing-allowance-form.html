@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="components :: site-head">
+  <title th:text="${isNew} ? 'Dodaj nowy przydział odzieżowy dla stanowiska' : 'Edycja przydziału odzieżowego dla stanowiska'">Przydział odzieżowy dla stanowiska</title>
+</head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="components :: navigation"></nav>
+
+<div class="container">
+  <div th:replace="components :: messages"></div>
+
+  <h1 class="mb-4" th:text="${title}">Przydział odzieżowy dla stanowiska</h1>
+
+  <form th:action="@{${isNew ? '/administration/position-clothing-allowances/new' : '/administration/position-clothing-allowances/' + allowanceDTO.id + '/edit'}}"
+        method="post"
+        th:object="${allowanceDTO}"
+        class="needs-validation"
+        novalidate>
+
+    <div class="row">
+      <div class="col-md-6">
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="mb-0">Dane podstawowe</h5>
+          </div>
+          <div class="card-body">
+            <div class="mb-3" th:if="${isNew}">
+              <label for="departmentId" class="form-label">Dział:</label>
+              <select class="form-select"
+                      id="departmentId"
+                      th:field="*{departmentId}"
+                      th:classappend="${#fields.hasErrors('departmentId')} ? 'is-invalid'"
+                      required>
+                <option value="">-- Wybierz dział --</option>
+                <option th:each="department : ${departments}"
+                        th:value="${department.id}"
+                        th:text="${department.name}">
+                </option>
+              </select>
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('departmentId')}"
+                   th:errors="*{departmentId}">Błąd działu</div>
+            </div>
+
+            <div class="mb-3" th:if="${!isNew}">
+              <label class="form-label">Dział:</label>
+              <p class="form-control-plaintext" th:text="*{departmentName}">Dział Transportu</p>
+              <input type="hidden" th:field="*{departmentId}">
+            </div>
+
+            <div class="mb-3" th:if="${isNew}">
+              <label for="positionId" class="form-label">Stanowisko:</label>
+              <select class="form-select"
+                      id="positionId"
+                      th:field="*{positionId}"
+                      th:classappend="${#fields.hasErrors('positionId')} ? 'is-invalid'"
+                      required>
+                <option value="">-- Wybierz stanowisko (ze wszystkich działów) --</option>
+                <option th:each="position : ${positions}"
+                        th:value="${position.id}"
+                        th:text="${position.name}">
+                </option>
+              </select>
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('positionId')}"
+                   th:errors="*{positionId}">Błąd stanowiska</div>
+            </div>
+
+            <div class="mb-3" th:if="${!isNew}">
+              <label class="form-label">Stanowisko:</label>
+              <p class="form-control-plaintext" th:text="*{positionName}">Kierowca</p>
+              <input type="hidden" th:field="*{positionId}">
+            </div>
+
+            <!-- Sekcja elementy odzieży -->
+            <div class="mb-3">
+              <label class="form-label">Elementy odzieży:</label>
+              <div id="clothingItemsContainer">
+                <div th:each="item, itemStat : *{clothingItems}" class="card mb-3">
+                  <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">Element odzieży #<span th:text="${itemStat.index + 1}">1</span></h6>
+                    <button type="button" class="btn btn-sm btn-danger remove-item" th:if="${itemStat.index > 0}">
+                      <i class="bi bi-trash"></i> Usuń
+                    </button>
+                  </div>
+                  <div class="card-body">
+                    <div class="mb-3">
+                      <label th:for="${'clothingItems[' + itemStat.index + '].clothingTypeId'}" class="form-label">Typ odzieży:</label>
+                      <select class="form-select"
+                              th:id="${'clothingItems[' + itemStat.index + '].clothingTypeId'}"
+                              th:field="*{clothingItems[__${itemStat.index}__].clothingTypeId}"
+                              th:classappend="${#fields.hasErrors('clothingItems[' + itemStat.index + '].clothingTypeId')} ? 'is-invalid'"
+                              required>
+                        <option value="">-- Wybierz typ odzieży --</option>
+                        <option th:each="clothingType : ${clothingTypes}"
+                                th:value="${clothingType.id}"
+                                th:text="${clothingType.name}">
+                        </option>
+                      </select>
+                      <div class="invalid-feedback" th:if="${#fields.hasErrors('clothingItems[' + itemStat.index + '].clothingTypeId')}"
+                           th:errors="*{clothingItems[__${itemStat.index}__].clothingTypeId}">Błąd typu odzieży</div>
+                    </div>
+
+                    <div class="mb-3">
+                      <label th:for="${'clothingItems[' + itemStat.index + '].quantity'}" class="form-label">Ilość:</label>
+                      <input type="number"
+                             class="form-control"
+                             th:id="${'clothingItems[' + itemStat.index + '].quantity'}"
+                             th:field="*{clothingItems[__${itemStat.index}__].quantity}"
+                             th:classappend="${#fields.hasErrors('clothingItems[' + itemStat.index + '].quantity')} ? 'is-invalid'"
+                             min="1"
+                             required>
+                      <div class="invalid-feedback" th:if="${#fields.hasErrors('clothingItems[' + itemStat.index + '].quantity')}"
+                           th:errors="*{clothingItems[__${itemStat.index}__].quantity}">Błąd ilości</div>
+                    </div>
+
+                    <div class="mb-3">
+                      <label th:for="${'clothingItems[' + itemStat.index + '].validityPeriod'}" class="form-label">Okres ważności (miesiące):</label>
+                      <input type="number"
+                             class="form-control"
+                             th:id="${'clothingItems[' + itemStat.index + '].validityPeriod'}"
+                             th:field="*{clothingItems[__${itemStat.index}__].validityPeriod}"
+                             th:classappend="${#fields.hasErrors('clothingItems[' + itemStat.index + '].validityPeriod')} ? 'is-invalid'"
+                             min="1"
+                             required>
+                      <div class="invalid-feedback" th:if="${#fields.hasErrors('clothingItems[' + itemStat.index + '].validityPeriod')}"
+                           th:errors="*{clothingItems[__${itemStat.index}__].validityPeriod}">Błąd okresu ważności</div>
+                    </div>
+
+                    <div class="mb-3">
+                      <div class="form-check">
+                        <input class="form-check-input"
+                               type="checkbox"
+                               th:id="${'clothingItems[' + itemStat.index + '].mandatory'}"
+                               th:field="*{clothingItems[__${itemStat.index}__].mandatory}">
+                        <label class="form-check-label" th:for="${'clothingItems[' + itemStat.index + '].mandatory'}">
+                          Obowiązkowy element odzieży
+                        </label>
+                      </div>
+                    </div>
+
+                    <div class="mb-3">
+                      <label th:for="${'clothingItems[' + itemStat.index + '].barcode'}" class="form-label">Kod kreskowy:</label>
+                      <input type="text"
+                             class="form-control barcode-field"
+                             th:id="${'clothingItems[' + itemStat.index + '].barcode'}"
+                             th:field="*{clothingItems[__${itemStat.index}__].barcode}"
+                             th:classappend="${#fields.hasErrors('clothingItems[' + itemStat.index + '].barcode')} ? 'is-invalid'"
+                             readonly>
+                      <div class="invalid-feedback" th:if="${#fields.hasErrors('clothingItems[' + itemStat.index + '].barcode')}"
+                           th:errors="*{clothingItems[__${itemStat.index}__].barcode}">Błąd kodu kreskowego</div>
+                      <small class="form-text text-muted">Wartość pobierana automatycznie z wybranego typu odzieży</small>
+                    </div>
+
+                    <div class="mb-3">
+                      <label th:for="${'clothingItems[' + itemStat.index + '].compensationAmount'}" class="form-label">Kwota ekwiwalentu:</label>
+                      <input type="number"
+                             class="form-control compensation-amount-field"
+                             th:id="${'clothingItems[' + itemStat.index + '].compensationAmount'}"
+                             th:field="*{clothingItems[__${itemStat.index}__].compensationAmount}"
+                             th:classappend="${#fields.hasErrors('clothingItems[' + itemStat.index + '].compensationAmount')} ? 'is-invalid'"
+                             step="0.01"
+                             min="0"
+                             readonly
+                             required>
+                      <div class="invalid-feedback" th:if="${#fields.hasErrors('clothingItems[' + itemStat.index + '].compensationAmount')}"
+                           th:errors="*{clothingItems[__${itemStat.index}__].compensationAmount}">Błąd kwoty ekwiwalentu</div>
+                      <small class="form-text text-muted">Wartość pobierana automatycznie z wybranego typu odzieży</small>
+                    </div>
+
+                    <div class="mb-3">
+                      <label th:for="${'clothingItems[' + itemStat.index + '].notes'}" class="form-label">Uwagi do elementu:</label>
+                      <textarea class="form-control"
+                                th:id="${'clothingItems[' + itemStat.index + '].notes'}"
+                                th:field="*{clothingItems[__${itemStat.index}__].notes}"
+                                th:classappend="${#fields.hasErrors('clothingItems[' + itemStat.index + '].notes')} ? 'is-invalid'"
+                                rows="2"></textarea>
+                      <div class="invalid-feedback" th:if="${#fields.hasErrors('clothingItems[' + itemStat.index + '].notes')}"
+                           th:errors="*{clothingItems[__${itemStat.index}__].notes}">Błąd uwag</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="d-flex gap-2 mt-2">
+                <button type="button" id="addClothingItem" class="btn btn-sm btn-primary">
+                  <i class="bi bi-plus-circle"></i> Dodaj element odzieży
+                </button>
+                <button type="button" id="cancelAddingItem" class="btn btn-sm btn-outline-danger" style="display: none;">
+                  <i class="bi bi-x-circle"></i> Anuluj dodawanie elementu
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="mb-0">Dodatkowe informacje</h5>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label for="notes" class="form-label">Uwagi:</label>
+              <textarea class="form-control"
+                        id="notes"
+                        th:field="*{notes}"
+                        th:classappend="${#fields.hasErrors('notes')} ? 'is-invalid'"
+                        rows="3"></textarea>
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('notes')}"
+                   th:errors="*{notes}">Błąd uwag</div>
+            </div>
+
+            <div class="mb-3" th:if="${!isNew}">
+              <div class="form-check">
+                <input class="form-check-input"
+                       type="checkbox"
+                       id="active"
+                       th:field="*{active}">
+                <label class="form-check-label" for="active">
+                  Aktywny
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mb-4" th:if="${!isNew}">
+          <div class="card-header">
+            <h5 class="mb-0">Statystyki</h5>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="form-label">Liczba przydziałów:</label>
+              <p class="form-control-plaintext" th:text="*{assignmentsCount}">0</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-save"></i> Zapisz
+      </button>
+      <a th:href="@{/administration/position-clothing-allowances}" class="btn btn-secondary">
+        <i class="bi bi-x-circle"></i> Anuluj
+      </a>
+    </div>
+  </form>
+</div>
+
+<div th:replace="components :: footer"></div>
+<div th:replace="components :: scripts"></div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Walidacja formularza
+    const form = document.querySelector('.needs-validation');
+    form.addEventListener('submit', function(event) {
+      // Upewnij się, że compensationAmount nigdy nie jest puste i domyślnie wynosi 0
+      const compensationAmountInputs = document.querySelectorAll('input[id$=".compensationAmount"]');
+      compensationAmountInputs.forEach(input => {
+        if (!input.value || input.value.trim() === '') {
+          input.value = '0';
+        }
+      });
+
+      if (!form.checkValidity()) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      form.classList.add('was-validated');
+    });
+
+    // Funkcja do ustawiania obsługi zdarzeń zmiany typu odzieży
+    function setupClothingTypeChangeHandlers() {
+      // Pobierz wszystkie elementy select typu odzieży
+      const clothingTypeSelects = document.querySelectorAll('select[id$=".clothingTypeId"]');
+
+      // Dodaj nasłuchiwanie zdarzenia zmiany do każdego elementu select
+      clothingTypeSelects.forEach(select => {
+        select.addEventListener('change', function() {
+          const selectedOption = this.options[this.selectedIndex];
+          const clothingTypeId = this.value;
+
+          if (clothingTypeId) {
+            // Pobierz nadrzędny element karty (card)
+            const card = this.closest('.card');
+
+            // Znajdź pola barcode i compensationAmount w tej karcie
+            const barcodeField = card.querySelector('.barcode-field');
+            const compensationField = card.querySelector('.compensation-amount-field');
+
+            // Pobierz szczegóły typu odzieży
+            fetch(`/administration/clothing-types/${clothingTypeId}/details`)
+              .then(response => {
+                if (!response.ok) {
+                  throw new Error('Network response was not ok');
+                }
+                return response.json();
+              })
+              .then(clothingType => {
+                // Zaktualizuj pola wartościami z wybranego typu odzieży
+                barcodeField.value = clothingType.barcode || '';
+                compensationField.value = clothingType.compensationValue || '0';
+              })
+              .catch(error => {
+                console.error('Error fetching clothing type details:', error);
+              });
+          } else {
+            // Wyczyść pola, jeśli nie wybrano żadnego typu odzieży
+            const card = this.closest('.card');
+            const barcodeField = card.querySelector('.barcode-field');
+            const compensationField = card.querySelector('.compensation-amount-field');
+
+            barcodeField.value = '';
+            compensationField.value = '0';
+          }
+        });
+
+        // Wywołaj zdarzenie zmiany, jeśli jakaś wartość jest już wybrana
+        if (select.value) {
+          const event = new Event('change');
+          select.dispatchEvent(event);
+        }
+      });
+    }
+
+    // Początkowe ustawienie obsługi zdarzeń zmiany
+    setupClothingTypeChangeHandlers();
+
+    // Obsłuż zmianę działu w celu filtrowania stanowisk
+    const departmentSelect = document.getElementById('departmentId');
+    const positionSelect = document.getElementById('positionId');
+
+    if (departmentSelect && positionSelect) {
+      departmentSelect.addEventListener('change', function() {
+        const departmentId = this.value;
+
+        // Wyczyść bieżące stanowiska i ustaw odpowiedni element zastępczy (placeholder)
+        if (departmentId) {
+          positionSelect.innerHTML = '<option value="">-- Wybierz stanowisko z wybranego działu --</option>';
+        } else {
+          positionSelect.innerHTML = '<option value="">-- Wybierz stanowisko (ze wszystkich działów) --</option>';
+        }
+
+        // Określ, którego endpointu użyć w zależności od tego, czy dział został wybrany
+        const url = departmentId 
+          ? `/administration/positions/by-department/${departmentId}`
+          : '/administration/positions/all';
+
+        // Pobierz stanowiska
+        fetch(url)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.json();
+          })
+          .then(positions => {
+            // Dodaj stanowiska do rozwijanego menu
+            positions.forEach(position => {
+              const option = document.createElement('option');
+              option.value = position.id;
+              option.textContent = position.name;
+              positionSelect.appendChild(option);
+            });
+          })
+          .catch(error => {
+            console.error('Error fetching positions:', error);
+          });
+      });
+
+      // Jeśli dział jest już wybrany przy ładowaniu strony, wywołaj zdarzenie zmiany
+      if (departmentSelect.value) {
+        // Utwórz i wywołaj zdarzenie zmiany (change)
+        const event = new Event('change');
+        departmentSelect.dispatchEvent(event);
+      }
+    }
+
+    // Obsłuż dodawanie nowych elementów odzieży
+    const addButton = document.getElementById('addClothingItem');
+    const cancelButton = document.getElementById('cancelAddingItem');
+    const container = document.getElementById('clothingItemsContainer');
+
+    // Funkcja do aktualizacji widoczności przycisku anulowania
+    function updateCancelButtonVisibility() {
+      const items = container.querySelectorAll('.card');
+      // Pokaż przycisk anulowania tylko wtedy, gdy istnieje więcej niż jeden element
+      cancelButton.style.display = items.length > 1 ? 'block' : 'none';
+    }
+
+    // Zainicjalizuj widoczność przycisku anulowania
+    updateCancelButtonVisibility();
+
+    addButton.addEventListener('click', function() {
+      // Pobierz aktualną liczbę elementów
+      const items = container.querySelectorAll('.card');
+      const newIndex = items.length;
+
+      // Sklonuj pierwszy element jako szablon
+      const template = items[0].cloneNode(true);
+
+      // Zaktualizuj wszystkie identyfikatory (ID) i nazwy, aby używały nowego indeksu
+      const inputs = template.querySelectorAll('input, select, textarea');
+      inputs.forEach(input => {
+        const name = input.getAttribute('name');
+        if (name) {
+          const newName = name.replace(/\[\d+\]/, '[' + newIndex + ']');
+          input.setAttribute('name', newName);
+          input.setAttribute('id', newName);
+
+          // Wyczyść wartości
+          if (input.type === 'text' || input.type === 'number' || input.tagName === 'TEXTAREA') {
+            input.value = '';
+          } else if (input.type === 'checkbox') {
+            input.checked = false;
+          } else if (input.tagName === 'SELECT') {
+            input.selectedIndex = 0;
+          }
+        }
+      });
+
+      // Zaktualizuj etykiety
+      const labels = template.querySelectorAll('label');
+      labels.forEach(label => {
+        const forAttr = label.getAttribute('for');
+        if (forAttr) {
+          const newFor = forAttr.replace(/\[\d+\]/, '[' + newIndex + ']');
+          label.setAttribute('for', newFor);
+        }
+      });
+
+      // Zaktualizuj nagłówek
+      const header = template.querySelector('h6');
+      header.innerHTML = 'Element odzieży #' + (newIndex + 1);
+
+      // Pokaż przycisk usuwania (tylko dla elementów innych niż pierwszy)
+      const removeButton = template.querySelector('.remove-item');
+      if (removeButton) {
+        // Ponieważ jest to nowy dodawany element, nigdy nie jest pierwszym
+        // więc możemy go zawsze pokazać
+        removeButton.style.display = 'block';
+      }
+
+      // Dodaj nowy element do kontenera
+      container.appendChild(template);
+
+      // Dodaj nasłuchiwanie zdarzeń do nowego przycisku usuwania
+      setupRemoveButtons();
+
+      // Ustaw obsługę zmiany typu odzieży dla nowego elementu
+      setupClothingTypeChangeHandlers();
+
+      // Zaktualizuj widoczność przycisku anulowania
+      updateCancelButtonVisibility();
+
+      // Przewiń do nowo dodanego elementu
+      template.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+
+    // Obsłuż anulowanie ostatnio dodanego elementu
+    cancelButton.addEventListener('click', function() {
+      const items = container.querySelectorAll('.card');
+      if (items.length > 1) {
+        const lastItem = items[items.length - 1];
+
+        // Dodaj efekt zanikania (fade-out)
+        lastItem.style.transition = 'opacity 0.3s ease';
+        lastItem.style.opacity = '0';
+
+        // Usuń element po zakończeniu animacji
+        setTimeout(() => {
+          lastItem.remove();
+
+          // Zaktualizuj widoczność przycisku anulowania
+          updateCancelButtonVisibility();
+
+          // Przewiń do poprzedniego elementu
+          if (items.length > 2) {
+            items[items.length - 2].scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 300);
+      }
+    });
+
+    // Obsłuż usuwanie elementów odzieży
+    function setupRemoveButtons() {
+      // Najpierw usuń istniejące nasłuchiwacze zdarzeń przez sklonowanie i zastąpienie każdego przycisku
+      const removeButtons = document.querySelectorAll('.remove-item');
+      removeButtons.forEach(button => {
+        const newButton = button.cloneNode(true);
+        button.parentNode.replaceChild(newButton, button);
+      });
+
+      // Teraz dodaj nasłuchiwanie zdarzeń do wszystkich przycisków usuwania
+      const updatedRemoveButtons = document.querySelectorAll('.remove-item');
+      updatedRemoveButtons.forEach(button => {
+        // Upewnij się, że przycisk jest widoczny dla elementów innych niż pierwszy
+        const card = button.closest('.card');
+        const index = Array.from(container.querySelectorAll('.card')).indexOf(card);
+        button.style.display = index > 0 ? 'block' : 'none';
+
+        button.addEventListener('click', function() {
+          const item = this.closest('.card');
+          item.remove();
+
+          // Renumber the remaining items
+          const items = container.querySelectorAll('.card');
+          items.forEach((item, index) => {
+            // Update header
+            const header = item.querySelector('h6');
+            header.innerHTML = 'Element odzieży #' + (index + 1);
+
+            // Update input names and IDs
+            const inputs = item.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+              const name = input.getAttribute('name');
+              if (name) {
+                const newName = name.replace(/\[\d+\]/, '[' + index + ']');
+                input.setAttribute('name', newName);
+                input.setAttribute('id', newName);
+              }
+            });
+
+            // Update label for attributes
+            const labels = item.querySelectorAll('label');
+            labels.forEach(label => {
+              const forAttr = label.getAttribute('for');
+              if (forAttr) {
+                const newFor = forAttr.replace(/\[\d+\]/, '[' + index + ']');
+                label.setAttribute('for', newFor);
+              }
+            });
+
+            // Hide remove button on first item, show on others
+            const removeButton = item.querySelector('.remove-item');
+            if (removeButton) {
+              removeButton.style.display = index > 0 ? 'block' : 'none';
+            }
+          });
+
+          // Update cancel button visibility
+          updateCancelButtonVisibility();
+        });
+      });
+    }
+
+    // Setup initial remove buttons
+    setupRemoveButtons();
+  });
+</script>
+</body>
+</html>

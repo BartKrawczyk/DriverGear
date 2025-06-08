@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{components :: site-head}">
+  <title>Formularz stanowiska</title>
+</head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="~{components :: navigation}"></nav>
+
+<div class="container">
+  <div th:replace="~{components :: messages}"></div>
+
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header">
+          <h2 th:text="${title}">Formularz stanowiska</h2>
+        </div>
+        <div class="card-body">
+          <form th:action="@{${isNew ? '/administration/positions' : '/administration/positions/' + positionDTO.id}}"
+                th:object="${positionDTO}" method="post" id="positionForm">
+
+            <div class="mb-3">
+              <label for="department" class="form-label">Dział</label>
+              <select id="department" th:field="*{departmentId}" class="form-select" required>
+                <option value="">Wybierz dział</option>
+                <option th:each="dept : ${departments}"
+                        th:value="${dept.id}"
+                        th:text="${dept.name}"
+                        th:attr="data-active=${dept.active}">Dział</option>
+              </select>
+              <div class="text-danger" th:if="${#fields.hasErrors('departmentId')}"
+                   th:errors="*{departmentId}"></div>
+              <div class="form-text text-warning" id="departmentActiveWarning" style="display: none;">
+                Uwaga: Wybrany dział jest nieaktywny
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="name" class="form-label">Nazwa stanowiska</label>
+              <input type="text" class="form-control" id="name" th:field="*{name}"
+                     required maxlength="100">
+              <div class="text-danger" th:if="${#fields.hasErrors('name')}"
+                   th:errors="*{name}"></div>
+            </div>
+
+            <div class="mb-3">
+              <label for="code" class="form-label">Kod stanowiska</label>
+              <input type="text" class="form-control" id="code" th:field="*{code}"
+                     required pattern="[A-Z0-9_]{2,20}" maxlength="20"
+                     title="Kod musi składać się z 2-20 wielkich liter, cyfr lub podkreśleń">
+              <div class="text-danger" th:if="${#fields.hasErrors('code')}"
+                   th:errors="*{code}"></div>
+              <div class="form-text">Dozwolone znaki: wielkie litery, cyfry i podkreślenie (_)</div>
+              <div class="invalid-feedback" id="codeError"></div>
+            </div>
+
+            <div class="mb-3">
+              <label for="description" class="form-label">Opis</label>
+              <textarea class="form-control" id="description" th:field="*{description}"
+                        rows="3" maxlength="500"></textarea>
+              <div class="text-danger" th:if="${#fields.hasErrors('description')}"
+                   th:errors="*{description}"></div>
+              <div class="form-text">Maksymalnie 500 znaków</div>
+            </div>
+
+            <div class="mb-3" th:unless="${isNew}">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="active" th:field="*{active}">
+                <label class="form-check-label" for="active">Aktywne</label>
+              </div>
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+              <a th:href="@{/administration/positions}" class="btn btn-secondary me-md-2">Anuluj</a>
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save"></i>
+                <span th:text="${isNew ? 'Dodaj' : 'Zapisz zmiany'}">Zapisz</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer th:replace="~{components :: footer}"></footer>
+<div th:replace="~{components :: scripts}"></div>
+
+<script th:inline="javascript">
+  document.addEventListener('DOMContentLoaded', function() {
+    const codeInput = document.getElementById('code');
+    const form = document.getElementById('positionForm');
+    const departmentSelect = document.getElementById('department');
+    const departmentWarning = document.getElementById('departmentActiveWarning');
+    const isNew = [[${isNew}]];
+    const currentId = isNew ? null : [[${positionDTO.id}]];
+
+    // Walidacja kodu stanowiska
+    let codeTimeout;
+    codeInput.addEventListener('input', function() {
+      clearTimeout(codeTimeout);
+      const code = this.value.toUpperCase();
+      this.value = code; // Automatyczna konwersja na wielkie litery
+
+      if (code.length >= 2) {
+        codeTimeout = setTimeout(() => {
+          fetch(`/administration/positions/check-code?code=${code}${currentId ? '&excludeId=' + currentId : ''}`)
+                  .then(response => response.json())
+                  .then(isAvailable => {
+                    if (!isAvailable) {
+                      codeInput.setCustomValidity('Ten kod jest już zajęty');
+                      document.getElementById('codeError').textContent = 'Ten kod jest już zajęty';
+                    } else {
+                      codeInput.setCustomValidity('');
+                      document.getElementById('codeError').textContent = '';
+                    }
+                  });
+        }, 300);
+      }
+    });
+
+    // Sprawdzanie statusu aktywności działu
+    departmentSelect.addEventListener('change', function() {
+      const selectedOption = this.options[this.selectedIndex];
+      if (selectedOption.value && selectedOption.getAttribute('data-active') === 'false') {
+        departmentWarning.style.display = 'block';
+      } else {
+        departmentWarning.style.display = 'none';
+      }
+    });
+
+    // Walidacja formularza przed wysłaniem
+    form.addEventListener('submit', function(e) {
+      if (!form.checkValidity()) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      form.classList.add('was-validated');
+    });
+  });
+</script>
+</body>
+</html>
+

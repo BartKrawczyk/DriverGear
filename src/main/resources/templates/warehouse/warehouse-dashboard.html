@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="components :: site-head">
+    <title>Panel Magazynu</title>
+</head>
+<body class="d-flex flex-column min-vh-100 metallic-background">
+<nav th:replace="components :: navigation"></nav>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12 text-center mb-4 mt-4">
+            <h1 class="text-white">Panel Magazynu</h1>
+        </div>
+    </div>
+
+    <div class="row justify-content-center align-items-center mb-5" style="min-height: 50vh;">
+        <!-- Pracownicy -->
+        <div class="col-md-3 text-center mb-4">
+            <a th:href="@{/warehouse/employees}" class="text-decoration-none">
+                <div class="card h-100 shadow-sm hover-card metallic-card">
+                    <div class="card-body">
+                        <i class="bi bi-person-badge fs-1 mb-3"></i>
+                        <h3 class="card-title">Pracownicy</h3>
+                        <p class="card-text">Zarządzaj przydziałami odzieży dla pracowników</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+<!--        &lt;!&ndash; Wydania odzieży &ndash;&gt;-->
+<!--        <div class="col-md-3 text-center mb-4">-->
+<!--            <a th:href="@{/warehouse/issues}" class="text-decoration-none">-->
+<!--                <div class="card h-100 shadow-sm hover-card metallic-card">-->
+<!--                    <div class="card-body">-->
+<!--                        <i class="bi bi-box-arrow-right fs-1 mb-3"></i>-->
+<!--                        <h3 class="card-title">Wydania odzieży</h3>-->
+<!--                        <p class="card-text">Zarządzaj wydaniami odzieży</p>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </a>-->
+<!--        </div>-->
+
+        <!-- Magazyn -->
+        <div class="col-md-3 text-center mb-4">
+            <a th:href="@{/warehouse/inventory}" class="text-decoration-none">
+                <div class="card h-100 shadow-sm hover-card metallic-card">
+                    <div class="card-body">
+                        <i class="bi bi-box-seam fs-1 mb-3"></i>
+                        <h3 class="card-title">Magazyn</h3>
+                        <p class="card-text">Zarządzaj stanem magazynu</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+<!--        &lt;!&ndash; Ekwiwalenty &ndash;&gt;-->
+<!--        <div class="col-md-3 text-center mb-4">-->
+<!--            <a th:href="@{/warehouse/compensations}" class="text-decoration-none">-->
+<!--                <div class="card h-100 shadow-sm hover-card metallic-card">-->
+<!--                    <div class="card-body">-->
+<!--                        <i class="bi bi-cash-coin fs-1 mb-3"></i>-->
+<!--                        <h3 class="card-title">Ekwiwalenty</h3>-->
+<!--                        <p class="card-text">Zarządzaj wypłatami ekwiwalentów</p>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </a>-->
+<!--        </div>-->
+
+        <!-- Historia wydań odzieży -->
+        <div class="col-md-3 text-center mb-4">
+            <a th:href="@{/warehouse/history/issued-clothing}" class="text-decoration-none">
+                <div class="card h-100 shadow-sm hover-card metallic-card">
+                    <div class="card-body">
+                        <i class="bi bi-clock-history fs-1 mb-3"></i>
+                        <h3 class="card-title">Historia wydań</h3>
+                        <p class="card-text">Przeglądaj historię wydań odzieży</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Historia wypłat ekwiwalentów -->
+        <div class="col-md-3 text-center mb-4">
+            <a th:href="@{/warehouse/history/paid-compensations}" class="text-decoration-none">
+                <div class="card h-100 shadow-sm hover-card metallic-card">
+                    <div class="card-body">
+                        <i class="bi bi-receipt fs-1 mb-3"></i>
+                        <h3 class="card-title">Historia ekwiwalentów</h3>
+                        <p class="card-text">Przeglądaj historię wypłat ekwiwalentów</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Poziomy stanów magazynowych -->
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Poziomy stanów magazynowych</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-dark">
+                            <tr>
+                                <th>Typ odzieży</th>
+                                <th>Ilość</th>
+                                <th>Poziom zapasów</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="item : ${stockOverview}">
+                                <td th:text="${item.clothingTypeName}">Typ odzieży</td>
+                                <td th:text="${item.quantity}">Ilość</td>
+                                <td>
+                                    <span th:if="${item.level.name() == 'LOW'}" class="badge bg-danger" th:text="${item.level.displayName}">Niski</span>
+                                    <span th:if="${item.level.name() == 'MEDIUM'}" class="badge bg-warning" th:text="${item.level.displayName}">Średni</span>
+                                    <span th:if="${item.level.name() == 'OK'}" class="badge bg-success" th:text="${item.level.displayName}">Wystarczający</span>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(stockOverview)}">
+                                <td colspan="3" class="text-center">Brak danych o stanach magazynowych</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="components :: footer"></div>
+<div th:replace="components :: scripts"></div>
+
+<style th:replace="dashboard :: style"></style>
+</body>
+</html>

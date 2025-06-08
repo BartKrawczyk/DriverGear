@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="components :: site-head">
+    <title>Panel Administracyjny</title>
+</head>
+<body class="d-flex flex-column min-vh-100 metallic-background">
+<nav th:replace="components :: navigation"></nav>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12 text-center mb-4 mt-4">
+            <h1 class="text-white">Panel Administracyjny</h1>
+        </div>
+    </div>
+
+    <div class="row justify-content-center align-items-center" style="min-height: 70vh;">
+        <!-- Użytkownicy - widoczne tylko dla admina -->
+        <div class="col-md-3 text-center mb-4" sec:authorize="hasRole('ADMIN')">
+            <a th:href="@{/administration/users}" class="text-decoration-none">
+                <div class="card h-100 shadow-sm hover-card metallic-card">
+                    <div class="card-body">
+                        <i class="bi bi-people fs-1 mb-3"></i>
+                        <h3 class="card-title">Użytkownicy</h3>
+                        <p class="card-text">Zarządzaj kontami użytkowników</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Pracownicy -->
+        <div class="col-md-3 text-center mb-4">
+            <a th:href="@{/administration/employees}" class="text-decoration-none">
+                <div class="card h-100 shadow-sm hover-card metallic-card">
+                    <div class="card-body">
+                        <i class="bi bi-person-badge fs-1 mb-3"></i>
+                        <h3 class="card-title">Pracownicy</h3>
+                        <p class="card-text">Zarządzaj danymi pracowników</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Departamenty -->
+        <div class="col-md-3 text-center mb-4">
+            <a th:href="@{/administration/departments}" class="text-decoration-none">
+                <div class="card h-100 shadow-sm hover-card metallic-card">
+                    <div class="card-body">
+                        <i class="bi bi-diagram-3 fs-1 mb-3"></i>
+                        <h3 class="card-title">Departamenty</h3>
+                        <p class="card-text">Zarządzaj strukturą działów</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Stanowiska -->
+        <div class="col-md-3 text-center mb-4">
+            <a th:href="@{/administration/positions}" class="text-decoration-none">
+                <div class="card h-100 shadow-sm hover-card metallic-card">
+                    <div class="card-body">
+                        <i class="bi bi-briefcase fs-1 mb-3"></i>
+                        <h3 class="card-title">Stanowiska</h3>
+                        <p class="card-text">Zarządzaj stanowiskami pracy</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Typy odzieży -->
+        <div class="col-md-3 text-center mb-4">
+            <a th:href="@{/administration/clothing-types}" class="text-decoration-none">
+                <div class="card h-100 shadow-sm hover-card metallic-card">
+                    <div class="card-body">
+                        <i class="bi bi-tags fs-1 mb-3"></i>
+                        <h3 class="card-title">Typy odzieży</h3>
+                        <p class="card-text">Zarządzaj typami odzieży służbowej</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Przydziały odzieżowe dla stanowisk -->
+        <div class="col-md-3 text-center mb-4">
+            <a th:href="@{/administration/position-clothing-allowances}" class="text-decoration-none">
+                <div class="card h-100 shadow-sm hover-card metallic-card">
+                    <div class="card-body">
+                        <i class="bi bi-briefcase-fill fs-1 mb-3"></i>
+                        <h3 class="card-title">Przydziały dla stanowisk</h3>
+                        <p class="card-text">Zarządzaj przydziałami odzieży dla stanowisk</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Przydziały odzieżowe -->
+        <div class="col-md-3 text-center mb-4">
+            <a th:href="@{/administration/clothing-allowances}" class="text-decoration-none">
+                <div class="card h-100 shadow-sm hover-card metallic-card">
+                    <div class="card-body">
+                        <i class="bi bi-clipboard-check fs-1 mb-3"></i>
+                        <h3 class="card-title">Przydziały odzieżowe</h3>
+                        <p class="card-text">Zarządzaj przydziałami odzieży dla pracowników</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div th:replace="components :: footer"></div>
+<div th:replace="components :: scripts"></div>
+
+<style th:replace="dashboard :: style"></style>
+</body>
+</html>

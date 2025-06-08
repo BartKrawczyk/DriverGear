@@ -1,0 +1,60 @@
+@startuml Driver Gear Use Case Diagram
+
+' Define actors
+actor "Warehouse Employee" as WarehouseEmployee
+actor "Administrator" as Admin
+actor "System" as System
+
+' Define use case rectangle
+rectangle "Driver Gear Application" {
+  ' Warehouse Employee use cases
+  usecase "Issue Clothing to Employee" as IssueClothing
+  usecase "Process Compensation Payment" as ProcessCompensation
+  usecase "Manage Warehouse Inventory" as ManageInventory
+  usecase "Mark Item as Out of Stock" as MarkOutOfStock
+  usecase "View Employee Entitlements" as ViewEntitlements
+  usecase "Issue Clothing by Barcode" as IssueByBarcode
+
+  ' Administrator use cases
+  usecase "Manage Clothing Types" as ManageClothingTypes
+  usecase "Manage Positions" as ManagePositions
+  usecase "Assign Workwear to Position" as AssignWorkwear
+  usecase "Create Clothing Allowance" as CreateAllowance
+  usecase "Manage Employees" as ManageEmployees
+  usecase "Configure System Settings" as ConfigureSystem
+
+  ' System use cases
+  usecase "Generate Compensation" as GenerateCompensation
+  usecase "Update Expired Allowances" as UpdateExpiredAllowances
+  usecase "Track Clothing Lifecycle" as TrackLifecycle
+}
+
+' Define relationships
+WarehouseEmployee --> IssueClothing
+WarehouseEmployee --> ProcessCompensation
+WarehouseEmployee --> ManageInventory
+WarehouseEmployee --> MarkOutOfStock
+WarehouseEmployee --> ViewEntitlements
+WarehouseEmployee --> IssueByBarcode
+
+Admin --> ManageClothingTypes
+Admin --> ManagePositions
+Admin --> AssignWorkwear
+Admin --> CreateAllowance
+Admin --> ManageEmployees
+Admin --> ConfigureSystem
+Admin --> ViewEntitlements
+
+System --> GenerateCompensation
+System --> UpdateExpiredAllowances
+System --> TrackLifecycle
+
+' Include relationships
+ManageInventory ..> MarkOutOfStock : <<include>>
+IssueClothing ..> ViewEntitlements : <<include>>
+ProcessCompensation ..> ViewEntitlements : <<include>>
+AssignWorkwear ..> ManageClothingTypes : <<include>>
+CreateAllowance ..> ManageEmployees : <<include>>
+CreateAllowance ..> ManagePositions : <<include>>
+
+@enduml

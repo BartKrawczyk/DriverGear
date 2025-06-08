@@ -1,0 +1,73 @@
+@startuml Proces naliczania ekwiwalentu
+
+title Proces naliczania ekwiwalentu za odzież roboczą
+
+|System|
+start
+:Wykryj przeterminowane przydziały;
+
+|#AntiqueWhite|Serwis ekwiwalentów|
+:Znajdź wszystkie przydziały, które są:
+- Przeterminowane (data ważności < dziś)
+- Nierozliczone
+- Niewydane pracownikowi
+- Oznaczone jako kwalifikujące się do ekwiwalentu;
+
+partition "Przetwarzanie kwalifikujących się przydziałów" {
+  while (Czy są kolejne przydziały?) is (tak)
+  
+    :Pobierz kolejny przydział;
+
+    |#LightBlue|Walidacja|
+    if (Czy przydział został wydany?) then (tak)
+      :Pomiń przydział;
+    else (nie)
+      if (Czy istnieje już ekwiwalent dla tego pracownika i typu odzieży?) then (tak)
+        :Zapisz informację o pominięciu – ekwiwalent już istnieje;
+      else (nie)
+        |#LightGreen|Tworzenie ekwiwalentu|
+
+        :<b>Rozpocznij transakcję</b>;
+        note right
+          Transakcja zapewnia spójność danych
+          podczas tworzenia ekwiwalentu
+        end note
+
+        :Oblicz kwotę ekwiwalentu
+        na podstawie przydziału stanowiskowego;
+
+        :Utwórz nowy rekord ekwiwalentu:
+        - Pracownik
+        - Przydział
+        - Kwota i okres
+        - Status = PENDING;
+
+        :Zapisz ekwiwalent do bazy;
+
+        |#LightYellow|Aktualizacja przydziału|
+        :Ustaw status = COMPENSATED;
+        :Ustaw eligibleForCompensation = false;
+        :Zapisz przydział;
+
+        |#LightPink|Tworzenie nowego przydziału|
+        :Utwórz nowy przydział dla tego typu odzieży:
+        - Ten sam pracownik
+        - Data od dziś, koniec wg okresu ważności
+        - Status = PENDING
+        - Niewydany;
+
+        :Zapisz nowy przydział;
+
+        :<b>Zatwierdź transakcję</b>;
+
+        :Zwiększ licznik utworzonych ekwiwalentów;
+      endif
+    endif
+  endwhile
+}
+
+|System|
+:Zwróć łączną liczbę utworzonych ekwiwalentów;
+
+stop
+@enduml

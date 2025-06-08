@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="components :: site-head">
+  <title th:text="${isNew} ? 'Dodaj nowy typ odzieży' : 'Edycja typu odzieży'">Typ odzieży</title>
+</head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="components :: navigation"></nav>
+
+<div class="container">
+  <div th:replace="components :: messages"></div>
+
+  <h1 class="mb-4" th:text="${title}">Typ odzieży</h1>
+
+  <form th:action="@{${isNew ? '/administration/clothing-types/new' : '/administration/clothing-types/' + clothingTypeDTO.id + '/edit'}}"
+        method="post"
+        th:object="${clothingTypeDTO}"
+        class="needs-validation"
+        novalidate>
+
+    <div class="row">
+      <div class="col-md-6">
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="mb-0">Dane podstawowe</h5>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label for="name" class="form-label">Nazwa typu odzieży:</label>
+              <input type="text"
+                     class="form-control"
+                     id="name"
+                     th:field="*{name}"
+                     th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'"
+                     required>
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}"
+                   th:errors="*{name}">Błąd nazwy</div>
+            </div>
+
+            <div class="mb-3">
+              <label for="description" class="form-label">Opis:</label>
+              <textarea class="form-control"
+                        id="description"
+                        th:field="*{description}"
+                        th:classappend="${#fields.hasErrors('description')} ? 'is-invalid'"
+                        rows="3"></textarea>
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('description')}"
+                   th:errors="*{description}">Błąd opisu</div>
+            </div>
+
+            <div class="mb-3">
+              <label for="barcode" class="form-label">Kod kreskowy:</label>
+              <input type="text"
+                     class="form-control"
+                     id="barcode"
+                     th:field="*{barcode}"
+                     th:classappend="${#fields.hasErrors('barcode')} ? 'is-invalid'">
+              <div class="form-text">Unikalny kod kreskowy dla tego typu odzieży</div>
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('barcode')}"
+                   th:errors="*{barcode}">Błąd kodu kreskowego</div>
+            </div>
+
+            <div class="mb-3">
+              <label for="compensationValue" class="form-label">Wartość ekwiwalentu (zł):</label>
+              <input type="number"
+                     class="form-control"
+                     id="compensationValue"
+                     th:field="*{compensationValue}"
+                     th:classappend="${#fields.hasErrors('compensationValue')} ? 'is-invalid'"
+                     step="0.01"
+                     min="0"
+                     required>
+              <div class="form-text">Kwota ekwiwalentu w przypadku nieotrzymania odzieży</div>
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('compensationValue')}"
+                   th:errors="*{compensationValue}">Błąd wartości ekwiwalentu</div>
+            </div>
+
+            <div class="mb-3">
+              <label for="standardLifetimeMonths" class="form-label">Standardowy okres użytkowania (miesiące):</label>
+              <input type="number"
+                     class="form-control"
+                     id="standardLifetimeMonths"
+                     th:field="*{standardLifetimeMonths}"
+                     th:classappend="${#fields.hasErrors('standardLifetimeMonths')} ? 'is-invalid'"
+                     min="1"
+                     required>
+              <div class="form-text">Standardowy okres użytkowania w miesiącach</div>
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('standardLifetimeMonths')}"
+                   th:errors="*{standardLifetimeMonths}">Błąd okresu użytkowania</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="card mb-4" th:if="${!isNew}">
+          <div class="card-header">
+            <h5 class="mb-0">Status</h5>
+          </div>
+          <div class="card-body">
+            <div class="form-check mb-3">
+              <input class="form-check-input" type="checkbox" id="active"
+                     th:field="*{active}"
+                     th:classappend="${#fields.hasErrors('active')} ? 'is-invalid'">
+              <label class="form-check-label" for="active">
+                Typ odzieży aktywny
+              </label>
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('active')}"
+                   th:errors="*{active}">Błąd statusu</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mb-4" th:if="${!isNew}">
+          <div class="card-header">
+            <h5 class="mb-0">Statystyki</h5>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="form-label">Liczba przydziałów:</label>
+              <p class="form-control-plaintext" th:text="*{positionAllowancesCount}">0</p>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Liczba ekwiwalentów:</label>
+              <p class="form-control-plaintext" th:text="*{compensationsCount}">0</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-save"></i> Zapisz
+      </button>
+      <a th:href="@{/administration/clothing-types}" class="btn btn-secondary">
+        <i class="bi bi-x-circle"></i> Anuluj
+      </a>
+    </div>
+  </form>
+</div>
+
+<div th:replace="components :: footer"></div>
+<div th:replace="components :: scripts"></div>
+</body>
+</html>

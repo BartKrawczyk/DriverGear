@@ -1,0 +1,43 @@
+<head th:fragment="site-head">
+    <!-- Meta tagi -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-hash12345" crossorigin="anonymous">
+    <!-- Twój własny CSS -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<nav th:fragment="navigation" class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+        <!-- Logo lub nazwa aplikacji -->
+        <a class="navbar-brand" th:href="@{/}">Moja Aplikacja</a>
+
+        <!-- Przycisk rozwijający dla ekranów mobilnych -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Przełącz nawigację">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Linki nawigacji -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link active" th:href="@{/home}">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/warehouse}">Warehouse</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/app-users}">Administration</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/logout}">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<footer th:fragment="footer">
+    <p>Bartek Krawczyk 2025</p>
+</footer>

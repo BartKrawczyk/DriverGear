@@ -1,0 +1,11 @@
+html, body {
+  height: 100%;
+  background-color: $primary;
+  color: $gray-very-dark;
+  font-family: 'Montserrat', sans-serif;
+  font-size: $font-size-6;
+  margin: 0;
+  padding: 0;
+  display: flex; /* Użyj flexboxa do rozmieszczenia elementów */
+  flex-direction: column; /* Elementy układane w kolumnach */
+}

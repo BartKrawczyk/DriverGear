@@ -1,0 +1,72 @@
+@startuml Workwear Compensation Calculation Process
+
+title Workwear Compensation Calculation Process
+
+|System|
+start
+:Detect expired assignments;
+
+|#AntiqueWhite|Compensation Service|
+:Find all assignments that are:
+- Expired (expiryDate before today)
+- Not already compensated
+- Not issued to employee
+- Marked as eligible for compensation;
+
+partition "Process Eligible Assignments" {
+  while (More eligible assignments?) is (yes)
+
+    :Get next eligible assignment;
+
+    |#LightBlue|Validation|
+    if (Was assignment issued to employee?) then (yes)
+      :Skip assignment;
+    else (no)
+      if (Compensation already exists for employee and clothing type?) then (yes)
+        :Log skipping - compensation exists;
+      else (no)
+        |#LightGreen|Compensation Creation|
+
+        :<b>Begin Transaction</b>;
+        note right
+          Transaction ensures data consistency
+          during compensation creation
+        end note
+
+        :Calculate compensation amount
+        based on clothing allowance;
+
+        :Create new compensation record:
+        - Employee reference
+        - Assignment reference
+        - Amount and dates
+        - Status = PENDING;
+
+        :Save compensation to database;
+
+        |#LightYellow|Assignment Update|
+        :Set assignment status = COMPENSATED;
+        :Set eligibleForCompensation = false;
+        :Save assignment;
+
+        |#LightPink|New Assignment Creation|
+        :Create new assignment for same clothing type:
+        - Same employee
+        - Start today, expiry from validity
+        - PENDING status
+        - Not issued;
+
+        :Save new assignment;
+
+        :<b>Commit Transaction</b>;
+        :Increment created count;
+      endif
+    endif
+  endwhile
+}
+
+|System|
+:Return total number of compensations created;
+
+stop
+@enduml

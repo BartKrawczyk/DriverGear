@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="components :: site-head">
+    <title>Poziomy stanów magazynowych</title>
+</head>
+<body class="d-flex flex-column min-vh-100 metallic-background">
+<nav th:replace="components :: navigation"></nav>
+
+<div class="container">
+    <div th:replace="components :: messages"></div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-4">
+        <h1 class="text-white">Poziomy stanów magazynowych</h1>
+        <a th:href="@{/warehouse}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Powrót
+        </a>
+    </div>
+
+    <!-- Poziomy magazynowe -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Poziomy stanów magazynowych</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-dark">
+                    <tr>
+                        <th>Typ odzieży</th>
+                        <th>Ilość</th>
+                        <th>Poziom zapasów</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="item : ${stockOverview}">
+                        <td th:text="${item.clothingTypeName}">Typ odzieży</td>
+                        <td th:text="${item.quantity}">Ilość</td>
+                        <td>
+                            <span th:if="${item.level.name() == 'LOW'}" class="badge bg-danger" th:text="${item.level.displayName}">Niski</span>
+                            <span th:if="${item.level.name() == 'MEDIUM'}" class="badge bg-warning" th:text="${item.level.displayName}">Średni</span>
+                            <span th:if="${item.level.name() == 'OK'}" class="badge bg-success" th:text="${item.level.displayName}">Wystarczający</span>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(stockOverview)}">
+                        <td colspan="3" class="text-center">Brak danych o stanach magazynowych</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="components :: footer"></div>
+<div th:replace="components :: scripts"></div>
+
+<style th:replace="dashboard :: style"></style>
+</body>
+</html>
