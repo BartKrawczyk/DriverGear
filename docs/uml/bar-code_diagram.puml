@@ -1,0 +1,186 @@
+@startuml "Barcode Scanning Workflow - Driver Gear"
+!pragma teoz true
+skinparam sequenceMessageAlign center
+skinparam maxMessageSize 200
+skinparam sequenceArrowThickness 1.5
+skinparam sequenceParticipant underline
+skinparam SequenceBoxBorderColor #A9DCDF
+skinparam SequenceBoxBackgroundColor #EEEEEE
+
+' Participants
+actor "Warehouse Employee" as Employee
+participant "WarehouseEmployeeController" as Controller
+participant "ClothingTypeService" as TypeService
+participant "ClothingTypeRepository" as TypeRepo
+participant "ClothingAssignmentService" as AssignmentService
+participant "ClothingAssignmentRepository" as AssignmentRepo
+participant "WarehouseInventoryService" as InventoryService
+participant "WarehouseInventoryRepository" as InventoryRepo
+participant "EmployeeEntitlementService" as EntitlementService
+
+' Start the sequence
+Employee -> Controller: scan barcode and select employee
+note right: POST /warehouse/issue-by-barcode
+
+' Barcode processing
+activate Controller
+note right of Controller #LightBlue
+  Extract barcode and employeeId
+  from request body
+end note
+
+Controller -> TypeService: findByBarcode(barcode)
+activate TypeService
+TypeService -> TypeRepo: findByBarcode(barcode)
+activate TypeRepo
+TypeRepo --> TypeService: ClothingType
+deactivate TypeRepo
+TypeService --> Controller: ClothingTypeDTO
+deactivate TypeService
+
+' Validate clothing type exists
+alt Clothing type not found
+    Controller --> Employee: Error response (clothing type not found)
+    deactivate Controller
+else Clothing type found
+
+' Issue clothing
+Controller -> Controller: issueClothing(clothingTypeId, employeeId)
+activate Controller #DarkSalmon
+
+' Find pending assignment
+Controller -> AssignmentService: getAssignmentsByEmployeeId(employeeId)
+activate AssignmentService
+AssignmentService -> AssignmentRepo: findByEmployeeId(employeeId)
+activate AssignmentRepo
+AssignmentRepo --> AssignmentService: List<ClothingAssignment>
+deactivate AssignmentRepo
+AssignmentService --> Controller: List<ClothingAssignmentDTO>
+deactivate AssignmentService
+
+note right of Controller #LightBlue
+  Filter assignments to find the oldest valid
+  and pending assignment for the given clothingTypeId:
+  - Status must be PENDING or ASSIGNED
+  - Not already issued to employee
+  - Matches the clothing type ID
+end note
+
+alt No valid assignment found
+    Controller --> Employee: Error response (no valid assignment)
+    deactivate Controller #DarkSalmon
+    deactivate Controller
+else Valid assignment found
+
+' Check inventory and mark as issued
+Controller -> AssignmentService: markAsIssued(assignmentId, LocalDate.now())
+activate AssignmentService
+AssignmentService -> AssignmentRepo: findById(assignmentId)
+activate AssignmentRepo
+AssignmentRepo --> AssignmentService: ClothingAssignment
+deactivate AssignmentRepo
+
+' Validate current status
+note right of AssignmentService #LightBlue
+  Validate that assignment status is
+  PENDING or ASSIGNED
+end note
+
+' Check if employee already has a valid item
+AssignmentService -> AssignmentRepo: findByEmployeeIdAndIssuedToEmployeeTrue(employeeId)
+activate AssignmentRepo
+AssignmentRepo --> AssignmentService: List<ClothingAssignment>
+deactivate AssignmentRepo
+
+note right of AssignmentService #LightBlue
+  Check if employee already has a valid
+  item of the same type that is not expired:
+  - Same clothing type
+  - Status is ISSUED
+  - Expiry date is in the future
+end note
+
+alt Employee already has valid item
+    AssignmentService --> Controller: BusinessException (already has valid item)
+    deactivate AssignmentService
+    Controller --> Employee: Error response
+    deactivate Controller #DarkSalmon
+    deactivate Controller
+else No duplicate item
+
+' Check inventory
+AssignmentService -> InventoryService: isItemInStock(clothingType, quantity)
+activate InventoryService
+InventoryService -> InventoryRepo: existsByClothingTypeAndQuantityGreaterThan(clothingType, quantity-1)
+activate InventoryRepo
+InventoryRepo --> InventoryService: boolean
+deactivate InventoryRepo
+InventoryService --> AssignmentService: boolean
+deactivate InventoryService
+
+alt Item not in stock
+    AssignmentService --> Controller: BusinessException (insufficient stock)
+    deactivate AssignmentService
+    Controller --> Employee: Error response
+    deactivate Controller #DarkSalmon
+    deactivate Controller
+else Item in stock
+
+' Decrease inventory
+AssignmentService -> InventoryService: decreaseStock(clothingType, quantity)
+activate InventoryService
+InventoryService -> InventoryRepo: findByClothingType(clothingType)
+activate InventoryRepo
+InventoryRepo --> InventoryService: Optional<WarehouseInventory>
+deactivate InventoryRepo
+
+note right of InventoryService #LightYellow
+  <b>Transactional Boundary</b>
+  The inventory update is part of a
+  transaction that ensures consistency
+  between assignment status and inventory
+end note
+
+InventoryService -> InventoryRepo: save(inventory)
+activate InventoryRepo
+InventoryRepo --> InventoryService: WarehouseInventory
+deactivate InventoryRepo
+InventoryService --> AssignmentService: void
+deactivate InventoryService
+
+' Update assignment status
+AssignmentService -> AssignmentRepo: save(assignment)
+activate AssignmentRepo
+note right of AssignmentService #LightBlue
+  Set issuedToEmployee = true
+  Set issuedDate = today
+  Set status = ISSUED
+end note
+AssignmentRepo --> AssignmentService: ClothingAssignment
+deactivate AssignmentRepo
+AssignmentService --> Controller: ClothingAssignmentDTO
+deactivate AssignmentService
+
+' Refresh entitlement data
+Controller -> EntitlementService: calculateCurrentEntitlement(employeeId)
+activate EntitlementService
+note right of EntitlementService #LightBlue
+  Recalculate employee's entitlements
+  to reflect the newly issued item
+end note
+EntitlementService --> Controller: EmployeeEntitlementDTO
+deactivate EntitlementService
+
+Controller --> Controller: Prepare success response
+deactivate Controller #DarkSalmon
+
+' Return response to employee
+Controller --> Employee: Success response with refresh flag
+deactivate Controller
+
+end alt
+end alt
+end alt
+end alt
+
+@enduml

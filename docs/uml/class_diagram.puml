@@ -1,0 +1,309 @@
+@startuml Driver Gear Class Diagram
+left to right direction
+' Entities
+class Employee {
+  -Long id
+  -String firstName
+  -String lastName
+  -String employeeNumber
+  -LocalDate hireDate
+  -String phoneNumber
+  -String email
+  -boolean active
+  -LocalDateTime createdAt
+  -LocalDateTime updatedAt
+  -LocalDate deactivationDate
+  +getFullName(): String
+  +getStandardAllowances(): Set<PositionClothingAllowance>
+}
+
+class Position {
+  -Long id
+  -String name
+  -String code
+  -String description
+  -boolean active
+}
+
+class Department {
+  -Long id
+  -String code
+  -String name
+  -String description
+  -boolean active
+}
+
+class ClothingType {
+  -Long id
+  -String name
+  -String description
+  -String barcode
+  -BigDecimal compensationValue
+  -Integer standardLifetimeMonths
+  -boolean active
+}
+
+class ClothingAssignment {
+  -Long id
+  -LocalDate assignmentDate
+  -LocalDate expiryDate
+  -String size
+  -Integer quantity
+  -Boolean issuedToEmployee
+  -LocalDate issuedDate
+  -Boolean eligibleForCompensation
+  -String notes
+  -LocalDateTime createdAt
+  -LocalDateTime updatedAt
+}
+
+class ClothingAllowance {
+  -Long id
+  -LocalDate startDate
+  -LocalDate endDate
+  -String notes
+  -Boolean active
+  -LocalDateTime createdAt
+  -AllowanceStatus status
+}
+
+class WarehouseInventory {
+  -Long id
+  -Integer quantity
+  -LocalDateTime lastUpdated
+}
+
+class ClothingCompensation {
+  -Long id
+  -BigDecimal amount
+  -LocalDate periodStart
+  -LocalDate periodEnd
+  -LocalDate paymentDate
+  -String notes
+  -LocalDateTime createdAt
+  -LocalDateTime updatedAt
+  -CompensationStatus status
+}
+
+class AppUser {
+  -Long id
+  -String username
+  -String password
+  -String firstName
+  -String lastName
+  -boolean locked
+  -UserRole role
+}
+
+class PositionClothingAllowance {
+  -Long id
+  -String notes
+  -Boolean active
+  -LocalDateTime createdAt
+  -LocalDateTime updatedAt
+}
+
+class PositionClothingItem {
+  -Long id
+  -Integer quantity
+  -Integer validityPeriod
+  -Boolean mandatory
+  -String notes
+  -Boolean active
+  -LocalDateTime createdAt
+  -LocalDateTime updatedAt
+  +getBarcode(): String
+  +getCompensationAmount(): BigDecimal
+}
+
+class ClothingSize {
+  -Long id
+  -String size
+  -String notes
+  -boolean active
+}
+
+class WarehouseTransaction {
+  -Long id
+  -TransactionType transactionType
+  -LocalDate transactionDate
+  -Integer quantity
+  -String size
+  -String notes
+  -LocalDateTime createdAt
+}
+
+class ClothingEntitlement {
+  -Long id
+  -LocalDate eligibleFrom
+  -LocalDate eligibleTo
+  -Integer usedQuantity
+}
+
+class ClothingUsage {
+  -Long id
+  -LocalDateTime dateTaken
+  -LocalDateTime dateReturned
+  -String status
+}
+
+class Clothing {
+  -Long id
+  -String name
+  -String category
+  -String size
+  -Integer quantity
+  -Integer eligibilityPeriod
+  -String barcode
+}
+
+class Storage {
+  -Long id
+  -int quantity
+  -LocalDateTime createdAt
+  -LocalDateTime updatedAt
+}
+
+' Enums
+enum AssignmentStatus {
+  PENDING
+  ASSIGNED
+  ISSUED
+  RETURNED
+  EXPIRED
+  COMPENSATED
+  CANCELLED
+}
+
+enum CompensationStatus {
+  PENDING
+  APPROVED
+  PAID
+  CANCELLED
+}
+
+enum AllowanceStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  PENDING
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum TransactionType {
+  ISSUE
+  RETURN
+}
+
+enum StockLevel {
+  LOW
+  MEDIUM
+  OK
+  +fromQuantity(int): StockLevel
+}
+
+' Active relationships
+Employee "1" -- "0..*" ClothingAllowance
+Employee "1" -- "0..*" ClothingAssignment
+Employee "1" -- "0..*" ClothingCompensation
+Employee "1" -- "0..*" ClothingSize
+Employee "1" -- "0..*" WarehouseTransaction
+Employee "*" -- "1" Position
+Employee "*" -- "1" Department
+Employee "1" -- "1" Gender
+
+Position "1" -- "0..*" Employee
+Position "1" -- "0..*" PositionClothingAllowance
+Position "*" -- "1" Department
+
+Department "1" -- "0..*" Position
+Department "1" -- "0..*" PositionClothingAllowance
+
+ClothingType "1" -- "0..*" PositionClothingItem
+ClothingType "1" -- "0..*" WarehouseInventory
+ClothingType "1" -- "0..*" ClothingAssignment
+ClothingType "1" -- "0..*" ClothingSize
+
+ClothingAssignment "0..*" -- "1" Employee
+ClothingAssignment "0..*" -- "1" PositionClothingAllowance
+ClothingAssignment "0..*" -- "1" ClothingType
+ClothingAssignment "1" -- "0..*" ClothingCompensation
+ClothingAssignment "1" -- "1" AssignmentStatus
+
+ClothingAllowance "0..*" -- "1" Employee
+ClothingAllowance "0..*" -- "1" Position
+ClothingAllowance "1" -- "1" AllowanceStatus
+
+WarehouseInventory "0..*" -- "1" ClothingType
+
+ClothingCompensation "0..*" -- "1" Employee
+ClothingCompensation "0..*" -- "1" ClothingAssignment
+ClothingCompensation "1" -- "1" CompensationStatus
+
+PositionClothingAllowance "0..*" -- "1" Position
+PositionClothingAllowance "0..*" -- "1" Department
+PositionClothingAllowance "1" -- "0..*" PositionClothingItem
+PositionClothingAllowance "1" -- "0..*" ClothingAssignment
+
+PositionClothingItem "0..*" -- "1" PositionClothingAllowance
+PositionClothingItem "0..*" -- "1" ClothingType
+
+AppUser "1" -- "1" UserRole
+
+WarehouseTransaction "0..*" -- "1" Employee
+WarehouseTransaction "0..*" -- "1" ClothingType
+WarehouseTransaction "1" -- "1" TransactionType
+
+' Legacy/planned relationships (shown with dashed lines)
+ClothingEntitlement "0..*" ..> "1" Employee
+ClothingEntitlement "0..*" ..> "1" Clothing
+
+ClothingUsage "0..*" ..> "1" Employee
+ClothingUsage "0..*" ..> "1" Clothing
+
+Clothing "1" ..> "0..*" ClothingUsage
+Clothing "1" ..> "0..*" ClothingEntitlement
+Storage "1" ..> "1" Clothing
+
+' Notes
+note "Active domain entity" as N1
+note "Legacy/planned entity" as N2
+note "Enum" as N3
+
+Employee .. N1
+ClothingType .. N1
+ClothingAssignment .. N1
+ClothingAllowance .. N1
+WarehouseInventory .. N1
+ClothingCompensation .. N1
+AppUser .. N1
+PositionClothingAllowance .. N1
+PositionClothingItem .. N1
+ClothingSize .. N1
+WarehouseTransaction .. N1
+Position .. N1
+Department .. N1
+
+ClothingEntitlement .. N2
+ClothingUsage .. N2
+Clothing .. N2
+Storage .. N2
+
+AssignmentStatus .. N3
+CompensationStatus .. N3
+AllowanceStatus .. N3
+Gender .. N3
+UserRole .. N3
+TransactionType .. N3
+StockLevel .. N3
+
+@enduml
