@@ -8,8 +8,8 @@ import org.springframework.stereotype.Component;
 import pl.programodawca.drivergear.service.ClothingAssignmentService;
 
 /**
- * Scheduled task that automatically marks expired clothing assignments.
- * Runs daily at 1:00 AM.
+ * Zaplanowane zadanie automatycznego oznaczania przeterminowanych przydziałów.
+ * Leci codziennie o 1:00 AM.
  */
 @Component
 @RequiredArgsConstructor
@@ -20,8 +20,8 @@ public class AssignmentExpirationTask {
     private final ClothingAssignmentService clothingAssignmentService;
     
     /**
-     * Scheduled task that runs daily at 1:00 AM to mark expired clothing assignments.
-     * Calls the service method to update expired assignments and logs the number of updated assignments.
+     * Zaplanowany task leci dziennie o 1:00 AM do oznaczenia przeterminowanych przydziałów
+     * Wywołuje metodę do updateu przeterminowanych przydziałów i loguje ilosć updatowanych przydziałów
      */
     @Scheduled(cron = "0 0 1 * * ?")
     public void markExpiredAssignments() {

@@ -232,6 +232,7 @@
 
 <script>
   // Show/hide deactivation date field based on active status
+  // pokaż/ukryj pole deaktywacji daty w oparciu o active status
   document.addEventListener('DOMContentLoaded', function() {
     const activeCheckbox = document.getElementById('active');
     const deactivationDateElement = document.getElementById('deactivationDate');
@@ -245,10 +246,10 @@
         }
       }
 
-      // Initial state
+      // Stan początkowy
       toggleDeactivationDate();
 
-      // On change
+      // Przy zmianie
       activeCheckbox.addEventListener('change', toggleDeactivationDate);
     }
 
@@ -257,27 +258,27 @@
     const positionSelect = document.getElementById('position');
 
     if (departmentSelect && positionSelect) {
-      // Store the initial position options
+      // Zapisz początkowe opcje stanowisk
       const initialPositionOptions = Array.from(positionSelect.options);
 
-      // Function to update positions based on selected department
+      // Funkcja do aktualizacji stanowisk na podstawie wybranego działu
       function updatePositions() {
         const departmentId = departmentSelect.value;
 
-        // Clear current options except the first one (placeholder)
+        // Wyczyść bieżące opcje z wyjątkiem pierwszej (elementu zastępczego)
         while (positionSelect.options.length > 1) {
           positionSelect.remove(1);
         }
 
         if (departmentId) {
-          // Enable position dropdown when department is selected
+          // Włącz rozwijane menu stanowisk po wybraniu działu
           positionSelect.disabled = false;
 
-          // Fetch positions for the selected department
+          // Pobierz stanowiska dla wybranego działu
           fetch(`/administration/employees/positions/by-department/${departmentId}`)
             .then(response => response.json())
             .then(positions => {
-              // Add new options
+              // Dodaj nowe opcje
               positions.forEach(position => {
                 const option = new Option(position.name, position.id);
                 positionSelect.add(option);
@@ -285,26 +286,26 @@
             })
             .catch(error => console.error('Error fetching positions:', error));
         } else {
-          // Disable position dropdown when no department is selected
+          // Wyłącz rozwijane menu stanowisk, gdy nie wybrano żadnego działu
           positionSelect.disabled = true;
 
-          // If no department is selected, restore all positions
+          // Jeśli nie wybrano działu, przywróć wszystkie stanowiska
           initialPositionOptions.forEach((option, index) => {
-            if (index > 0) { // Skip the first option (placeholder)
+            if (index > 0) { // Pomiń pierwszą opcję (element zastępczy)
               positionSelect.add(option.cloneNode(true));
             }
           });
         }
       }
 
-      // Update positions when department changes
+      // Zaktualizuj stanowiska po zmianie działu
       departmentSelect.addEventListener('change', updatePositions);
 
-      // Initial state: enable position dropdown if department is already selected
+      // Stan początkowy: włącz rozwijane menu stanowisk, jeśli dział został już wybrany
       if (departmentSelect.value) {
         positionSelect.disabled = false;
-        // Don't call updatePositions() here as it would clear existing options
-        // which would remove the pre-selected position
+        // Nie wywołuj tutaj updatePositions(), ponieważ usunie to istniejące opcje
+        // i spowoduje usunięcie wcześniej wybranego stanowiska
       } else {
         positionSelect.disabled = true;
       }
@@ -312,7 +313,7 @@
   });
 </script>
 
-<!-- Modal for adding a new department -->
+<!-- Modal do dodawania nowego działu -->
 <div class="modal fade" id="addDepartmentModal" tabindex="-1" aria-labelledby="addDepartmentModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -347,7 +348,7 @@
   </div>
 </div>
 
-<!-- Modal for adding a new position -->
+<!-- Modal do dodawania nowego stanowiska -->
 <div class="modal fade" id="addPositionModal" tabindex="-1" aria-labelledby="addPositionModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -386,7 +387,7 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    // Get references to elements
+    // Pobierz referencje do elementów
     const departmentSelect = document.getElementById('department');
     const positionSelect = document.getElementById('position');
     const addPositionBtn = document.getElementById('addPositionBtn');
@@ -398,26 +399,26 @@
     const positionFormError = document.getElementById('positionFormError');
     const positionDepartmentId = document.getElementById('positionDepartmentId');
 
-    // Bootstrap modal objects
+    // Obiekty modala Bootstrap
     const departmentModal = new bootstrap.Modal(document.getElementById('addDepartmentModal'));
     const positionModal = new bootstrap.Modal(document.getElementById('addPositionModal'));
 
-    // Enable/disable the "Add Position" button based on department selection
+    // Włącz/wyłącz przycisk „Dodaj stanowisko” w zależności od wybranego działu
     departmentSelect.addEventListener('change', function() {
       addPositionBtn.disabled = !departmentSelect.value;
     });
 
-    // Set the department ID in the position form when opening the modal
+    // Ustaw ID działu w formularzu stanowiska podczas otwierania modala
     addPositionBtn.addEventListener('click', function() {
       positionDepartmentId.value = departmentSelect.value;
     });
 
-    // Handle department form submission
+    // Obsłuż wysyłanie formularza działu
     saveDepartmentBtn.addEventListener('click', function() {
-      // Reset error messages
+      // Zresetuj komunikaty o błędach
       departmentFormError.classList.add('d-none');
 
-      // Basic form validation
+      // Podstawowa walidacja formularza
       const departmentCode = document.getElementById('departmentCode');
       const departmentName = document.getElementById('departmentName');
       let isValid = true;
@@ -438,14 +439,14 @@
 
       if (!isValid) return;
 
-      // Prepare form data
+      // Przygotuj dane formularza
       const formData = {
         code: departmentCode.value.trim(),
         name: departmentName.value.trim(),
         description: document.getElementById('departmentDescription').value.trim()
       };
 
-      // Send AJAX request
+      // Wyślij żądanie AJAX
       fetch('/administration/employees/departments/create', {
         method: 'POST',
         headers: {
@@ -463,15 +464,15 @@
         return response.json();
       })
       .then(data => {
-        // Add the new department to the dropdown and select it
+        // Dodaj nowy dział do rozwijanego menu i zaznacz go
         const option = new Option(data.name, data.id);
         departmentSelect.add(option);
         departmentSelect.value = data.id;
 
-        // Trigger change event to update positions dropdown
+        // Wywołaj zdarzenie zmiany, aby zaktualizować rozwijane menu stanowisk
         departmentSelect.dispatchEvent(new Event('change'));
 
-        // Close the modal and reset the form
+        // Zamknij modal i zresetuj formularz
         departmentModal.hide();
         newDepartmentForm.reset();
       })
@@ -481,12 +482,12 @@
       });
     });
 
-    // Handle position form submission
+    // Obsłuż wysyłanie formularza stanowiska
     savePositionBtn.addEventListener('click', function() {
-      // Reset error messages
+      // Zresetuj komunikaty o błędachZresetuj komunikaty o błędach
       positionFormError.classList.add('d-none');
 
-      // Basic form validation
+      // Podstawowa walidacja formularza
       const positionName = document.getElementById('positionName');
       const positionCode = document.getElementById('positionCode');
       let isValid = true;
@@ -507,7 +508,7 @@
 
       if (!isValid) return;
 
-      // Prepare form data
+      // Przygotuj dane formularza
       const formData = {
         departmentId: positionDepartmentId.value,
         name: positionName.value.trim(),
@@ -515,7 +516,7 @@
         description: document.getElementById('positionDescription').value.trim()
       };
 
-      // Send AJAX request
+      // Wyślij żądanie AJAX
       fetch('/administration/employees/positions/create', {
         method: 'POST',
         headers: {
@@ -533,12 +534,12 @@
         return response.json();
       })
       .then(data => {
-        // Add the new position to the dropdown and select it
+        // Dodaj nowe stanowisko do rozwijanego menu i zaznacz je
         const option = new Option(data.name, data.id);
         positionSelect.add(option);
         positionSelect.value = data.id;
 
-        // Close the modal and reset the form
+        // Zamknij modal i zresetuj formularz
         positionModal.hide();
         newPositionForm.reset();
       })
@@ -548,7 +549,7 @@
       });
     });
 
-    // Reset forms when modals are closed
+    // Zresetuj formularze po zamknięciu modali
     document.getElementById('addDepartmentModal').addEventListener('hidden.bs.modal', function() {
       newDepartmentForm.reset();
       departmentFormError.classList.add('d-none');

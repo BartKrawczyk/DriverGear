@@ -162,7 +162,7 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    // Validate that end date is after start date
+    // Sprawdź czy ta data jest po dacie rozpoczęcia
     const startDateInput = document.getElementById('startDate');
     const endDateInput = document.getElementById('endDate');
 
@@ -180,7 +180,7 @@
     startDateInput.addEventListener('change', validateDates);
     endDateInput.addEventListener('change', validateDates);
 
-    // Initial validation
+    // wstępna walidacja
     validateDates();
   });
 </script>

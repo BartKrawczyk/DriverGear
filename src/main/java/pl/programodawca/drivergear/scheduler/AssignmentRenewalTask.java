@@ -15,8 +15,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Scheduled task that automatically renews clothing assignments after they are compensated.
- * Runs daily at 2:00 AM, after the AssignmentExpirationTask.
+ * Zaplanowany task automatycznego odnawiania przydziałów po tym jak zostały skompensowane.
+ * Leci dziennie 2:00 AM, po AssignmentExpirationTask.
  */
 @Component
 @RequiredArgsConstructor
@@ -28,35 +28,35 @@ public class AssignmentRenewalTask {
     private final EmployeeService employeeService;
     
     /**
-     * Scheduled task that runs daily at 2:00 AM to renew compensated clothing assignments.
-     * Finds all compensated assignments and creates new assignments for the employees.
+     * Leci dziennie o 2:00 AM - odnawia skompensowane przydziały.
+     * Znajduje wszyskie skompensowane przydziały i tworzy nowe dla pracowników.
      */
     @Scheduled(cron = "0 0 2 * * ?")
     public void renewCompensatedAssignments() {
         logger.info("Starting scheduled task to renew compensated clothing assignments");
         
         try {
-            // Find all compensated assignments
+            // Znajdź wszystkie skompensowane przydziały
             List<ClothingAssignment> compensatedAssignments = 
                 assignmentRepository.findByStatus(AssignmentStatus.COMPENSATED);
             
-            // Use a Set to avoid processing the same employee multiple times
+            // Użycie set by zapobiec procesowaniu tego samego pracownika po kilka razy
             Set<Long> processedEmployeeIds = new HashSet<>();
             int totalAssignmentsCreated = 0;
             
             for (ClothingAssignment assignment : compensatedAssignments) {
                 Long employeeId = assignment.getEmployee().getId();
                 
-                // Skip if we've already processed this employee
+                // Pomiń jeśli już procesowaliśmy tego pracownika
                 if (processedEmployeeIds.contains(employeeId)) {
                     continue;
                 }
                 
-                // Create new assignments for the employee
+                // Utwórz nowy przydział dla pracownika
                 int assignmentsCreated = employeeService.ensureClothingAssignmentsForEmployee(employeeId);
                 totalAssignmentsCreated += assignmentsCreated;
                 
-                // Mark this employee as processed
+                // Zaznacz tego pracownika jako przeprocesowanego
                 processedEmployeeIds.add(employeeId);
                 
                 logger.info("Created {} new assignments for employee ID: {}", 

@@ -70,7 +70,7 @@
               <input type="hidden" th:field="*{positionId}">
             </div>
 
-            <!-- Clothing Items Section -->
+            <!-- Sekcja elementy odzieży -->
             <div class="mb-3">
               <label class="form-label">Elementy odzieży:</label>
               <div id="clothingItemsContainer">
@@ -253,10 +253,10 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    // Form validation
+    // Walidacja formularza
     const form = document.querySelector('.needs-validation');
     form.addEventListener('submit', function(event) {
-      // Ensure compensationAmount is never empty and defaults to 0
+      // Upewnij się, że compensationAmount nigdy nie jest puste i domyślnie wynosi 0
       const compensationAmountInputs = document.querySelectorAll('input[id$=".compensationAmount"]');
       compensationAmountInputs.forEach(input => {
         if (!input.value || input.value.trim() === '') {
@@ -271,26 +271,26 @@
       form.classList.add('was-validated');
     });
 
-    // Function to set up clothing type change handlers
+    // Funkcja do ustawiania obsługi zdarzeń zmiany typu odzieży
     function setupClothingTypeChangeHandlers() {
-      // Get all clothing type select elements
+      // Pobierz wszystkie elementy select typu odzieży
       const clothingTypeSelects = document.querySelectorAll('select[id$=".clothingTypeId"]');
 
-      // Add change event listener to each select
+      // Dodaj nasłuchiwanie zdarzenia zmiany do każdego elementu select
       clothingTypeSelects.forEach(select => {
         select.addEventListener('change', function() {
           const selectedOption = this.options[this.selectedIndex];
           const clothingTypeId = this.value;
 
           if (clothingTypeId) {
-            // Get the parent card element
+            // Pobierz nadrzędny element karty (card)
             const card = this.closest('.card');
 
-            // Find the barcode and compensationAmount fields in this card
+            // Znajdź pola barcode i compensationAmount w tej karcie
             const barcodeField = card.querySelector('.barcode-field');
             const compensationField = card.querySelector('.compensation-amount-field');
 
-            // Fetch the clothing type details
+            // Pobierz szczegóły typu odzieży
             fetch(`/administration/clothing-types/${clothingTypeId}/details`)
               .then(response => {
                 if (!response.ok) {
@@ -299,7 +299,7 @@
                 return response.json();
               })
               .then(clothingType => {
-                // Update the fields with values from the clothing type
+                // Zaktualizuj pola wartościami z wybranego typu odzieży
                 barcodeField.value = clothingType.barcode || '';
                 compensationField.value = clothingType.compensationValue || '0';
               })
@@ -307,7 +307,7 @@
                 console.error('Error fetching clothing type details:', error);
               });
           } else {
-            // Clear the fields if no clothing type is selected
+            // Wyczyść pola, jeśli nie wybrano żadnego typu odzieży
             const card = this.closest('.card');
             const barcodeField = card.querySelector('.barcode-field');
             const compensationField = card.querySelector('.compensation-amount-field');
@@ -317,7 +317,7 @@
           }
         });
 
-        // Trigger change event if a value is already selected
+        // Wywołaj zdarzenie zmiany, jeśli jakaś wartość jest już wybrana
         if (select.value) {
           const event = new Event('change');
           select.dispatchEvent(event);
@@ -325,10 +325,10 @@
       });
     }
 
-    // Initial setup of change handlers
+    // Początkowe ustawienie obsługi zdarzeń zmiany
     setupClothingTypeChangeHandlers();
 
-    // Handle department change to filter positions
+    // Obsłuż zmianę działu w celu filtrowania stanowisk
     const departmentSelect = document.getElementById('departmentId');
     const positionSelect = document.getElementById('positionId');
 
@@ -336,19 +336,19 @@
       departmentSelect.addEventListener('change', function() {
         const departmentId = this.value;
 
-        // Clear current positions and set appropriate placeholder
+        // Wyczyść bieżące stanowiska i ustaw odpowiedni element zastępczy (placeholder)
         if (departmentId) {
           positionSelect.innerHTML = '<option value="">-- Wybierz stanowisko z wybranego działu --</option>';
         } else {
           positionSelect.innerHTML = '<option value="">-- Wybierz stanowisko (ze wszystkich działów) --</option>';
         }
 
-        // Determine which endpoint to use based on whether a department is selected
+        // Określ, którego endpointu użyć w zależności od tego, czy dział został wybrany
         const url = departmentId 
           ? `/administration/positions/by-department/${departmentId}`
           : '/administration/positions/all';
 
-        // Fetch positions
+        // Pobierz stanowiska
         fetch(url)
           .then(response => {
             if (!response.ok) {
@@ -357,7 +357,7 @@
             return response.json();
           })
           .then(positions => {
-            // Add positions to the dropdown
+            // Dodaj stanowiska do rozwijanego menu
             positions.forEach(position => {
               const option = document.createElement('option');
               option.value = position.id;
@@ -370,38 +370,38 @@
           });
       });
 
-      // If department is already selected on page load, trigger the change event
+      // Jeśli dział jest już wybrany przy ładowaniu strony, wywołaj zdarzenie zmiany
       if (departmentSelect.value) {
-        // Create and dispatch a change event
+        // Utwórz i wywołaj zdarzenie zmiany (change)
         const event = new Event('change');
         departmentSelect.dispatchEvent(event);
       }
     }
 
-    // Handle adding new clothing items
+    // Obsłuż dodawanie nowych elementów odzieży
     const addButton = document.getElementById('addClothingItem');
     const cancelButton = document.getElementById('cancelAddingItem');
     const container = document.getElementById('clothingItemsContainer');
 
-    // Function to update the cancel button visibility
+    // Funkcja do aktualizacji widoczności przycisku anulowania
     function updateCancelButtonVisibility() {
       const items = container.querySelectorAll('.card');
-      // Show cancel button only if there's more than one item
+      // Pokaż przycisk anulowania tylko wtedy, gdy istnieje więcej niż jeden element
       cancelButton.style.display = items.length > 1 ? 'block' : 'none';
     }
 
-    // Initialize cancel button visibility
+    // Zainicjalizuj widoczność przycisku anulowania
     updateCancelButtonVisibility();
 
     addButton.addEventListener('click', function() {
-      // Get the current number of items
+      // Pobierz aktualną liczbę elementów
       const items = container.querySelectorAll('.card');
       const newIndex = items.length;
 
-      // Clone the first item as a template
+      // Sklonuj pierwszy element jako szablon
       const template = items[0].cloneNode(true);
 
-      // Update all IDs and names to use the new index
+      // Zaktualizuj wszystkie identyfikatory (ID) i nazwy, aby używały nowego indeksu
       const inputs = template.querySelectorAll('input, select, textarea');
       inputs.forEach(input => {
         const name = input.getAttribute('name');
@@ -410,7 +410,7 @@
           input.setAttribute('name', newName);
           input.setAttribute('id', newName);
 
-          // Clear values
+          // Wyczyść wartości
           if (input.type === 'text' || input.type === 'number' || input.tagName === 'TEXTAREA') {
             input.value = '';
           } else if (input.type === 'checkbox') {
@@ -421,7 +421,7 @@
         }
       });
 
-      // Update labels
+      // Zaktualizuj etykiety
       const labels = template.querySelectorAll('label');
       labels.forEach(label => {
         const forAttr = label.getAttribute('for');
@@ -431,52 +431,52 @@
         }
       });
 
-      // Update header
+      // Zaktualizuj nagłówek
       const header = template.querySelector('h6');
       header.innerHTML = 'Element odzieży #' + (newIndex + 1);
 
-      // Show remove button (only for non-first elements)
+      // Pokaż przycisk usuwania (tylko dla elementów innych niż pierwszy)
       const removeButton = template.querySelector('.remove-item');
       if (removeButton) {
-        // Since this is a new element being added, it's never the first element
-        // so we can always show it
+        // Ponieważ jest to nowy dodawany element, nigdy nie jest pierwszym
+        // więc możemy go zawsze pokazać
         removeButton.style.display = 'block';
       }
 
-      // Add the new item to the container
+      // Dodaj nowy element do kontenera
       container.appendChild(template);
 
-      // Add event listeners to the new remove button
+      // Dodaj nasłuchiwanie zdarzeń do nowego przycisku usuwania
       setupRemoveButtons();
 
-      // Set up clothing type change handlers for the new item
+      // Ustaw obsługę zmiany typu odzieży dla nowego elementu
       setupClothingTypeChangeHandlers();
 
-      // Update cancel button visibility
+      // Zaktualizuj widoczność przycisku anulowania
       updateCancelButtonVisibility();
 
-      // Scroll to the newly added element
+      // Przewiń do nowo dodanego elementu
       template.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
 
-    // Handle canceling the last added item
+    // Obsłuż anulowanie ostatnio dodanego elementu
     cancelButton.addEventListener('click', function() {
       const items = container.querySelectorAll('.card');
       if (items.length > 1) {
         const lastItem = items[items.length - 1];
 
-        // Add fade-out effect
+        // Dodaj efekt zanikania (fade-out)
         lastItem.style.transition = 'opacity 0.3s ease';
         lastItem.style.opacity = '0';
 
-        // Remove the element after the animation
+        // Usuń element po zakończeniu animacji
         setTimeout(() => {
           lastItem.remove();
 
-          // Update cancel button visibility
+          // Zaktualizuj widoczność przycisku anulowania
           updateCancelButtonVisibility();
 
-          // Scroll to the previous element
+          // Przewiń do poprzedniego elementu
           if (items.length > 2) {
             items[items.length - 2].scrollIntoView({ behavior: 'smooth', block: 'center' });
           }
@@ -484,19 +484,19 @@
       }
     });
 
-    // Handle removing clothing items
+    // Obsłuż usuwanie elementów odzieży
     function setupRemoveButtons() {
-      // First, remove any existing event listeners by cloning and replacing each button
+      // Najpierw usuń istniejące nasłuchiwacze zdarzeń przez sklonowanie i zastąpienie każdego przycisku
       const removeButtons = document.querySelectorAll('.remove-item');
       removeButtons.forEach(button => {
         const newButton = button.cloneNode(true);
         button.parentNode.replaceChild(newButton, button);
       });
 
-      // Now add event listeners to all remove buttons
+      // Teraz dodaj nasłuchiwanie zdarzeń do wszystkich przycisków usuwania
       const updatedRemoveButtons = document.querySelectorAll('.remove-item');
       updatedRemoveButtons.forEach(button => {
-        // Make sure the button is visible for non-first elements
+        // Upewnij się, że przycisk jest widoczny dla elementów innych niż pierwszy
         const card = button.closest('.card');
         const index = Array.from(container.querySelectorAll('.card')).indexOf(card);
         button.style.display = index > 0 ? 'block' : 'none';
